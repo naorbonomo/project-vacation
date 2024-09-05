@@ -1,0 +1,32 @@
+/* components/CityAnimation.css */
+.city-animation {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    text-align: center;
+  }
+  
+  .city {
+    font-size: 1rem; /* Start small */
+    font-weight: bold;
+    color: #020000;
+    animation: growFont 2s ease-in-out forwards; /* Apply the font-size animation */
+  }
+  
+  @keyframes growFont {
+    0% {
+      font-size: 1rem; /* Start small */
+      opacity: 0; /* Start invisible */
+    }
+    90% {
+      font-size: 20rem; /* Grow to large size */
+      opacity: 1; /* Fully visible */
+    }
+    100% {
+      font-size: 20rem; /* Stay at the large size */
+      opacity: 0; /* Fade out */
+    }
+  }
+  
