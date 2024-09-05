@@ -10,7 +10,8 @@ const createTables = async () => {
             last_name VARCHAR(50) NOT NULL,
             email VARCHAR(100) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL,
-            role ENUM('Regular User', 'Admin') NOT NULL
+            role ENUM('Regular User', 'Admin') NOT NULL DEFAULT 'Regular User',
+            token VARCHAR(255)
         );
     `;
     await runQuery(Q);

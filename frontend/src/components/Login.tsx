@@ -1,56 +1,47 @@
-// src/components/Login.tsx
+import React from 'react';
+import { login } from '../api/authClientAPI';
+import { useNavigate } from 'react-router-dom';
 
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
-import APP_CONFIG from '../utils/appconfig';
+type Props = {
+    setUser: (user: any) => void;
+}
 
-const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const { login } = useAuth();
+const Login: React.FC<Props> = ({ setUser }) => {
+    const [email, setEmail] = React.useState<string>("");
+    const [password, setPassword] = React.useState<string>("");
+    const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(`${APP_CONFIG.API_BASE_URL}/api/login`, {
-        
-        // ... existing fetch options ...
-      });
-      const data = await response.json();
-      if (response.ok) {
-        login(data.token, data.user.isAdmin);
-        // Handle successful login (e.g., redirect to dashboard)
-      } else {
-        setError(data.message || 'Login failed');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError('An error occurred during login');
+    const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        try {
+            const user = await login(email, password);
+
+            // Store user in localStorage and update state
+            if (user && user.userWithoutPassword) {
+                localStorage.setItem('user', JSON.stringify(user.userWithoutPassword));  // Store user info in localStorage
+                setUser(user.userWithoutPassword);  // Update user state
+                alert("Hello " + user.userWithoutPassword.first_name);
+                navigate('/');  // Navigate to home page after login
+            } else {
+                alert("Login failed, no user data found.");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("Login failed. Please try again.");
+        }
     }
-  };
 
-  return (
-    <form onSubmit={handleSubmit}>
-      {error && <div style={{ color: 'red' }}>{error}</div>}
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        required
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        required
-      />
-      <button type="submit">Login</button>
-    </form>
-  );
-};
+    return (
+        <div>Login
+            <form onSubmit={handleLogin}>
+                <input placeholder='email' type='email' value={email} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setEmail(e.target.value) }} />
+                <input placeholder='password' type='password' value={password} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setPassword(e.target.value) }} />
+
+                <button type='submit'>Login</button>
+            </form>
+        </div>
+    )
+}
 
 export default Login;

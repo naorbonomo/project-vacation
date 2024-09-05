@@ -1,0 +1,19 @@
+2024-09-05T11:06:47.600Z - "first_name" is required
+2024-09-05T11:10:00.466Z - "first_name" is required
+2024-09-05T11:12:46.957Z - "first_name" is required
+2024-09-05T11:14:33.998Z - "first_name" is required
+2024-09-05T11:14:43.000Z - You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')' at line 2
+2024-09-05T11:18:31.477Z - You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')' at line 2
+2024-09-05T11:18:37.008Z - You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')' at line 2
+2024-09-05T11:18:56.636Z - You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')' at line 2
+2024-09-05T11:19:26.302Z - Table 'vacation-project.user' doesn't exist
+2024-09-05T11:20:39.736Z - Duplicate entry 'naorbonomo@gmail.com' for key 'email'
+2024-09-05T11:20:59.262Z - Table 'vacation-project.user' doesn't exist
+2024-09-05T11:21:36.701Z - Unknown column 'id' in 'field list'
+2024-09-05T11:22:32.920Z - Unknown column 'undefined' in 'where clause'
+2024-09-05T11:26:01.359Z - "first_name" is required
+2024-09-05T11:28:59.651Z - "first_name" is required
+2024-09-05T11:30:26.251Z - "first_name" is required
+2024-09-05T11:31:00.194Z - "last_name" is required
+2024-09-05T11:31:34.573Z - Duplicate entry 'NaorBonomo@gmail.com' for key 'email'
+2024-09-05T12:02:32.592Z - Unknown column 'undefined' in 'where clause'

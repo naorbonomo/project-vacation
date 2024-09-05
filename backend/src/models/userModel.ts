@@ -5,8 +5,8 @@ import { ValidationError } from "./exceptions";
 
 interface UserInterface {
     id?: number;
-    firstName: string;
-    lastName: string;
+    first_name: string;
+    last_name: string;
     password?: string;
     email: string;
     role: string;
@@ -16,8 +16,8 @@ interface UserInterface {
 
 export default class UserModel {
     id?: number;
-    firstName: string;
-    lastName: string;
+    first_name: string;
+    last_name: string;
     password?: string;
     email: string;
     role: string;
@@ -26,8 +26,8 @@ export default class UserModel {
 
     constructor(user: UserInterface ){
         this.id = user.id;
-        this.firstName = user.firstName;
-        this.lastName = user.lastName;
+        this.first_name = user.first_name;
+        this.last_name = user.last_name;
         this.password = user.password;
         this.email = user.email;
         this.role = user.role;
@@ -37,11 +37,11 @@ export default class UserModel {
 
     private static validateSchema = Joi.object({
       id: Joi.number().optional().positive(),
-      firstName: Joi.string().required().min(2).max(50),
-      lastName: Joi.string().required().min(2).max(50),
+      first_name: Joi.string().required().min(2).max(50),
+      last_name: Joi.string().required().min(2).max(50),
       password: Joi.string().required().min(4).max(15),
       email: Joi.string().required().email(),
-      role: Joi.string().required(),
+      role: Joi.string().optional(),
       isAdmin: Joi.boolean().optional(),
       token: Joi.string().optional(),
     })

@@ -6,18 +6,25 @@ import { useAuth } from '../context/AuthContext';
 import APP_CONFIG from '../utils/appconfig';
 
 const Register: React.FC = () => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [first_name, setFirst_name] = useState('');
+  const [last_name, setLast_name] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+//   const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+      // Log the form data
+  console.log({
+    first_name,
+    last_name,
+    email,
+    password
+  });
     try {
-      const response = await axios.post(`${APP_CONFIG.API_BASE_URL}/api/register`, { firstName, lastName, email, password });
-      const { token, isAdmin } = response.data;
-      login(token, isAdmin);
+      const response = await axios.post(`${APP_CONFIG.API_BASE_URL}/api/register`, { first_name, last_name, email, password });
+    //   const { token, isAdmin } = response.data;
+    //   login(token, isAdmin);
       // Redirect to home page or vacations list
     } catch (error) {
       console.error('Registration failed:', error);
@@ -28,15 +35,15 @@ const Register: React.FC = () => {
     <form onSubmit={handleSubmit}>
       <input
         type="text"
-        value={firstName}
-        onChange={(e) => setFirstName(e.target.value)}
+        value={first_name}
+        onChange={(e) => setFirst_name(e.target.value)}
         placeholder="First Name"
         required
       />
       <input
         type="text"
-        value={lastName}
-        onChange={(e) => setLastName(e.target.value)}
+        value={last_name}
+        onChange={(e) => setLast_name(e.target.value)}
         placeholder="Last Name"
         required
       />
