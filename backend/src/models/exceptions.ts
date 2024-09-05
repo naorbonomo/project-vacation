@@ -1,3 +1,5 @@
+// backend/models/exceptions.ts
+
 import { StatusCode } from "./statusEnum";
 
 export abstract class AppExcption {

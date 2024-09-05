@@ -1,19 +1,10 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 class UserController {
     constructor(userService) {
         this.userService = userService;
-        this.register = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.register = async (req, res) => {
             try {
                 console.log('Received request body:', req.body);
                 const { firstName, lastName, email, password } = req.body;
@@ -21,7 +12,7 @@ class UserController {
                 if (!firstName || !lastName || !email || !password) {
                     return res.status(400).json({ error: 'Missing required fields' });
                 }
-                const user = yield this.userService.register(firstName, lastName, email, password);
+                const user = await this.userService.register(firstName, lastName, email, password);
                 console.log('User registered successfully:', user);
                 res.status(201).json(user);
             }
@@ -41,38 +32,38 @@ class UserController {
                     res.status(500).json({ error: 'Internal server error' });
                 }
             }
-        });
-        this.login = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.login = async (req, res) => {
             try {
                 const { email, password } = req.body;
-                const result = yield this.userService.login(email, password);
-                res.json(result);
-            }
-            catch (error) {
-                if (error instanceof Error) {
-                    if (error.message === 'User not found') {
-                        res.status(404).json({ error: 'User not found' });
-                    }
-                    else if (error.message === 'Invalid password') {
-                        res.status(401).json({ error: 'Invalid password' });
-                    }
-                    else {
-                        console.error('Error logging in:', error);
-                        res.status(500).json({ error: 'Internal server error' });
-                    }
+                // Validate user credentials
+                const user = await validateUser(email, password);
+                if (user) {
+                    const token = generateToken(user);
+                    res.json({
+                        token,
+                        isAdmin: user.role === 'Admin' // Assuming your user model has a 'role' field
+                    });
+                }
+                else {
+                    res.status(401).json({ error: 'Invalid credentials' });
                 }
             }
-        });
-        this.getAllUsers = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            catch (error) {
+                console.error('Login error:', error);
+                res.status(500).json({ error: 'Internal server error' });
+            }
+        };
+        this.getAllUsers = async (req, res) => {
             try {
-                const users = yield this.userService.getAllUsers();
+                const users = await this.userService.getAllUsers();
                 res.json(users);
             }
             catch (error) {
                 console.error('Error fetching users:', error);
                 res.status(500).json({ error: 'Internal server error' });
             }
-        });
+        };
     }
 }
 exports.UserController = UserController;

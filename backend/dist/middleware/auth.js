@@ -5,26 +5,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isAdmin = exports.authenticate = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const appConfig_1 = require("../utils/appConfig");
 const authenticate = (req, res, next) => {
-    console.log('Headers:', req.headers); // Log all headers
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-        const token = authHeader.split(' ')[1];
-        console.log('Received token:', token); // Log the received token
-        jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, user) => {
-            if (err) {
-                console.error('Token verification error:', err); // Log the verification error
-                return res.sendStatus(403);
-            }
-            console.log('Decoded token:', user);
-            req.user = user;
-            next();
-        });
-    }
-    else {
-        console.log('No authorization header present');
-        res.sendStatus(401);
-    }
+    console.log('Entire request:', req);
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (token == null)
+        return res.sendStatus(401);
+    jsonwebtoken_1.default.verify(token, appConfig_1.appConfig.jwtSecrete, (err, user) => {
+        console.log('Token verification result:', err ? 'Error' : 'Success');
+        if (err)
+            return res.sendStatus(403);
+        req.user = user;
+        next();
+    });
 };
 exports.authenticate = authenticate;
 const isAdmin = (req, res, next) => {

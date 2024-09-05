@@ -1,3 +1,5 @@
+// backend/src/controllers/followController.ts
+
 import { Request, Response } from 'express';
 import { FollowService } from '../services/followService';
 

@@ -1,77 +1,161 @@
-import { Pool } from 'mysql2/promise';
+// backend/services/vacationService.ts
 
-export class VacationService {
-  constructor(private pool: Pool) {}
+import { ValidationError, NotFoundError } from '../models/exceptions';
+import VacationModel from '../models/vacationModel';
+import runQuery from '../DB/dal';
+import { appConfig } from '../utils/appConfig';
 
-  async getAllVacations() {
+export async function getAllVacations(): Promise<VacationModel[]> {
     console.log('Executing getAllVacations query');
-    const [rows] = await this.pool.query('SELECT * FROM vacations ORDER BY start_date ASC');
-    console.log('Query result:', rows);
-    return rows;
-  }
+    const q = 'SELECT * FROM vacations ORDER BY start_date ASC';
+    const res = await runQuery(q);
 
-  async createVacation(vacationData: any) {
-    const { destination, description, startDate, endDate, price, imageFilename } = vacationData;
-    
+    console.log('Query result:', res);
+    return res.map((v: any) => {
+        const vacation = new VacationModel(v);
+        vacation.imageUrl = v.image_filename ? `http://localhost:${appConfig.port}/images/${v.image_filename}` : '';
+        return vacation;
+    });
+}
+
+export async function createVacation(vacationData: Partial<VacationModel>): Promise<VacationModel> {
+    console.log('Received vacation data:', vacationData);
+
+    const { destination, description, startDate, endDate, price, imageUrl = '' } = vacationData;
+
+    if (!destination) throw new ValidationError('Missing required field: destination');
+    if (!description) throw new ValidationError('Missing required field: description');
+    if (!startDate) throw new ValidationError('Missing required field: startDate');
+    if (!endDate) throw new ValidationError('Missing required field: endDate');
+    if (!price) throw new ValidationError('Missing required field: price');
+
     console.log('Creating vacation with data:', vacationData);
 
-    if (!destination || !description || !startDate || !endDate || !price) {
-      throw new Error('Missing required fields');
-    }
+    const q = `
+      INSERT INTO vacations (destination, description, start_date, end_date, price, image_filename)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    const params = [destination, description, startDate, endDate, price, imageUrl || ''];
 
     try {
-      const [result] = await this.pool.query(
-        'INSERT INTO vacations (destination, description, start_date, end_date, price, image_filename) VALUES (?, ?, ?, ?, ?, ?)',
-        [destination, description, startDate, endDate, price, imageFilename]
-      );
+      const result = await runQuery(q, params) as any;
       console.log('Vacation created successfully:', result);
-      return { id: (result as any).insertId, ...vacationData };
+      return { id: result.insertId, ...vacationData } as VacationModel;
     } catch (error) {
       console.error('Database error:', error);
-      if (error instanceof Error) {
-        throw new Error(`Failed to create vacation in database: ${error.message}`);
-      } else {
-        throw new Error('Failed to create vacation in database');
-      }
+      throw new ValidationError('Failed to create vacation in database: ' + (error as Error).message);
     }
-  }
-
-  async updateVacation(id: number, vacationData: any, image: Express.Multer.File | undefined) {
-    const { destination, description, start_date, end_date, price } = vacationData;
-    let image_filename = undefined;
-
-    if (image) {
-      image_filename = image.filename;
-    }
-
-    const [result] = await this.pool.query(
-      'UPDATE vacations SET destination = ?, description = ?, start_date = ?, end_date = ?, price = ?, image_filename = COALESCE(?, image_filename) WHERE vacation_id = ?',
-      [destination, description, start_date, end_date, price, image_filename, id]
-    );
-
-    if ((result as any).affectedRows === 0) {
-      throw new Error('Vacation not found');
-    }
-
-    return this.getVacationById(id);
-  }
-
-  async deleteVacation(id: number) {
-    const [result] = await this.pool.query('DELETE FROM vacations WHERE vacation_id = ?', [id]);
-    if ((result as any).affectedRows === 0) {
-      throw new Error('Vacation not found');
-    }
-  }
-
-  async getVacationById(id: number) {
-    const [rows] = await this.pool.query('SELECT * FROM vacations WHERE vacation_id = ?', [id]);
-    return (rows as any[])[0];
-  }
-
-  async getPublicVacations() {
-    console.log('Executing getPublicVacations query');
-    const [rows] = await this.pool.query('SELECT vacation_id, destination, description, start_date, end_date, price, image_filename FROM vacations ORDER BY start_date ASC');
-    console.log('Query result:', rows);
-    return rows;
-  }
 }
+
+export async function deleteVacation(id: number): Promise<void> {
+    console.log(`Attempting to delete vacation with id: ${id}`);
+
+    const q = 'DELETE FROM vacations WHERE vacation_id = ?';
+    const params = [id];
+
+    try {
+        const result = await runQuery(q, params) as any;
+        console.log('Delete operation result:', result);
+
+        if (result.affectedRows === 0) {
+            throw new NotFoundError(`Vacation with id ${id} not found`);
+        }
+
+        console.log(`Vacation with id ${id} deleted successfully`);
+    } catch (error) {
+        console.error('Error deleting vacation:', error);
+        if (error instanceof NotFoundError) {
+            throw error;
+        }
+        throw new Error(`Failed to delete vacation: ${(error as Error).message}`);
+    }
+}
+
+export async function updateVacation(id: number, vacationData: Partial<VacationModel>): Promise<VacationModel> {
+    console.log(`Attempting to update vacation with id: ${id}`);
+    console.log('Update data received:', vacationData);
+
+    const updates: string[] = [];
+    const params: any[] = [];
+
+    if (vacationData.destination !== undefined) {
+        updates.push('destination = ?');
+        params.push(vacationData.destination);
+    }
+    if (vacationData.description !== undefined) {
+        updates.push('description = ?');
+        params.push(vacationData.description);
+    }
+    if (vacationData.startDate !== undefined) {
+        updates.push('start_date = ?');
+        params.push(vacationData.startDate);
+    }
+    if (vacationData.endDate !== undefined) {
+        updates.push('end_date = ?');
+        params.push(vacationData.endDate);
+    }
+    if (vacationData.price !== undefined) {
+        updates.push('price = ?');
+        params.push(vacationData.price);
+    }
+    if (vacationData.imageUrl !== undefined) {
+        updates.push('image_filename = ?');
+        params.push(vacationData.imageUrl);
+    }
+
+    if (updates.length === 0) {
+        console.log('No fields to update');
+        return getVacationById(id);
+    }
+
+    const q = `
+        UPDATE vacations
+        SET ${updates.join(', ')}
+        WHERE vacation_id = ?
+    `;
+    params.push(id);
+
+    try {
+        const result = await runQuery(q, params) as any;
+        console.log('Update operation result:', result);
+
+        if (result.affectedRows === 0) {
+            throw new NotFoundError(`Vacation with id ${id} not found`);
+        }
+
+        // Fetch the updated vacation
+        const updatedVacation = await getVacationById(id);
+        console.log(`Vacation with id ${id} updated successfully`);
+        return updatedVacation;
+    } catch (error) {
+        console.error('Error updating vacation:', error);
+        if (error instanceof NotFoundError) {
+            throw error;
+        }
+        throw new Error(`Failed to update vacation: ${(error as Error).message}`);
+    }
+}
+export async function getVacationById(id: number): Promise<VacationModel> {
+    console.log(`Fetching vacation with id: ${id}`);
+
+    const q = 'SELECT * FROM vacations WHERE vacation_id = ?';
+    const params = [id];
+
+    try {
+        const result = await runQuery(q, params) as any[];
+        
+        if (result.length === 0) {
+            throw new NotFoundError(`Vacation with id ${id} not found`);
+        }
+
+        console.log(`Vacation with id ${id} fetched successfully`);
+        return new VacationModel(result[0]);
+    } catch (error) {
+        console.error('Error fetching vacation:', error);
+        if (error instanceof NotFoundError) {
+            throw error;
+        }
+        throw new Error(`Failed to fetch vacation: ${(error as Error).message}`);
+    }
+}
+

@@ -1,3 +1,6 @@
+// backend/src/middleware/doormanMiddleware.ts
+
+
 import { NextFunction, Request, Response } from "express";
 import { appConfig } from "../utils/appConfig";
 import { UnauthorizedError } from "../models/exceptions";

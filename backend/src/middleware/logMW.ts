@@ -1,3 +1,5 @@
+// backend/src/middleware/logMW.ts
+
 import { NextFunction, Request, Response } from "express";
 import { writeAccessLog } from "../utils/logger";
 

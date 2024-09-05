@@ -1,3 +1,5 @@
+// backend/src/utils/authUtils.ts
+
 import UserModel from "../models/userModel";
 import jwt from "jsonwebtoken";
 import { appConfig } from "./appConfig";
@@ -9,7 +11,7 @@ export function verifyToken(token: string, adminRequired: boolean = false) {
         throw new UnauthorizedError("Missing Credentials!")
     }
     try {        
-        const res = jwt.verify(token, appConfig.jwtSecrete) as {userWithoutPassword: UserModel};
+        const res = jwt.verify(token, appConfig.jwtSecrete as string) as {userWithoutPassword: UserModel};
         if (adminRequired && !res.userWithoutPassword.isAdmin){
             throw new UnauthorizedError("Only admin user has access!");
         }
@@ -29,7 +31,7 @@ export function createToken(user: UserModel): string {
 
     // const options = {expiresIn: "3h"};
     const options = {};
-    const token = jwt.sign({userWithoutPassword}, appConfig.jwtSecrete, options)
+    const token = jwt.sign({userWithoutPassword}, appConfig.jwtSecrete as string, options)
 
     return token;
 }

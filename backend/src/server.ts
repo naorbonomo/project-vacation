@@ -1,72 +1,57 @@
+// backend/src/server.ts
+
 import express from 'express';
 import cors from 'cors';
-import mysql from 'mysql2/promise';
 import path from 'path';
-import fs from 'fs';
 import { appConfig } from "./utils/appConfig";
 import { logMW } from "./middleware/logMW";
-import { upload } from './utils/uploadConfig'; // Update this import
+import { isDbServerUp } from "./utils/helpers";
+import { vacationRouter } from './controllers/vacationController';
+import expressRateLimit from "express-rate-limit";
+import catchAll from './middleware/catchAll';
 
-import { createApiRouter } from './routes/api';
-import { VacationService } from './services/vacationService';
-import { VacationController } from './controllers/vacationController';
-import { UserService } from './services/userService';
-import { UserController } from './controllers/userController';
-import { FollowService } from './services/followService';
-import { FollowController } from './controllers/followController';
+const server = express();
 
-const app = express();
+// protect from dos attack 
+server.use(expressRateLimit({
+    windowMs: 1000,  // time window
+    max: 50,     // amount of calls (per time window)
+}))
 
-// Enable CORS for all routes
-app.use(cors({
-  origin: 'http://localhost:3000', // Your frontend URL
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+// cors
+server.use(cors({origin: ["http://localhost:3000", "http://localhost:3001"]}));
+// server.use(cors({ origin: "*" })); // Development use only! Change to specific origin later
+
+
+// Doorman security chcek
+// server.use(doorman);
 
 // log
-app.use(logMW);
+server.use(logMW);
 
-app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
+server.use(express.json());
+// server.use(express.urlencoded({ extended: true }));
 
-// Create a MySQL connection pool
-const pool = mysql.createPool(appConfig.dbConfig);
+// // Serve static files from the uploads directory
+server.use('/images', express.static(path.join(__dirname, '../uploads')));
 
-// Initialize services and controllers
-const vacationService = new VacationService(pool);
-const vacationController = new VacationController(vacationService);
+server.use("/", vacationRouter);
+server.use(catchAll);
 
-const userService = new UserService(pool);
-const userController = new UserController(userService);
+// run server only if DB-server is active
+isDbServerUp().then((isUp) => {
+    if (isUp) {
+        server.listen(appConfig.port, () => {
+            console.log(`Listening on http://localhost:${appConfig.port}`);
+        })
+    } else {
+        console.error("\n\n****\nDB server is not up!!!\n****\n");
+    }
+})
 
-const followService = new FollowService(pool);
-const followController = new FollowController(followService);
 
-// Serve static files from the uploads directory
-app.use('/images', express.static(path.join(__dirname, '../uploads')));
-
-// Set up API routes
-const apiRouter = createApiRouter(vacationController, userController, followController);
-app.use('/api', apiRouter);
-
-// Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Internal Server Error' });
-});
-
-// Check if uploads directory exists and create it if not
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Make sure this line is present to parse JSON bodies
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-app.listen(appConfig.port, () => {
-    console.log(`Server running on port ${appConfig.port}`);
-});
+// // Check if uploads directory exists and create it if not
+// const uploadsDir = path.join(__dirname, '..', 'uploads');
+// if (!fs.existsSync(uploadsDir)) {
+//     fs.mkdirSync(uploadsDir, { recursive: true });
+// }

@@ -1,6 +1,9 @@
+// backend/src/components/Register.tsx
+
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import APP_CONFIG from '../utils/appconfig';
 
 const Register: React.FC = () => {
   const [firstName, setFirstName] = useState('');
@@ -12,7 +15,7 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:4002/api/register', { firstName, lastName, email, password });
+      const response = await axios.post(`${APP_CONFIG.API_BASE_URL}/api/register`, { firstName, lastName, email, password });
       const { token, isAdmin } = response.data;
       login(token, isAdmin);
       // Redirect to home page or vacations list

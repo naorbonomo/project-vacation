@@ -1,3 +1,5 @@
+// backend/src/middleware/catchAll.ts
+
 import { NextFunction, Request, Response } from "express";
 import { AppExcption } from "../models/exceptions";
 import { StatusCode } from "../models/statusEnum";

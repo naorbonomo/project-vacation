@@ -1,90 +1,92 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VacationController = void 0;
-class VacationController {
-    constructor(vacationService) {
-        this.vacationService = vacationService;
-        this.getAllVacations = async (req, res) => {
-            try {
-                console.log('Fetching all vacations');
-                const vacations = await this.vacationService.getAllVacations();
-                console.log('Vacations fetched:', vacations);
-                res.json(vacations);
-            } catch (error) {
-                console.error('Error fetching vacations:', error);
-                res.status(500).json({ error: 'Internal server error' });
-            }
-        };
-        this.createVacation = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            try {
-                const vacationData = req.body;
-                if (req.file) {
-                    vacationData.imageFilename = req.file.filename;
-                }
-                else {
-                    throw new Error('Image file is required');
-                }
-                console.log('Received vacation data:', vacationData);
-                const newVacation = yield this.vacationService.createVacation(vacationData);
-                res.status(201).json(newVacation);
-            }
-            catch (error) {
-                console.error('Error creating vacation:', error);
-                if (error instanceof Error) {
-                    res.status(500).json({ error: error.message, stack: error.stack });
-                }
-                else {
-                    res.status(500).json({ error: 'An unexpected error occurred' });
-                }
-            }
-        });
-        this.updateVacation = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { id } = req.params;
-                const updatedVacation = yield this.vacationService.updateVacation(parseInt(id), req.body, req.file);
-                res.json(updatedVacation);
-            }
-            catch (error) {
-                console.error('Error updating vacation:', error);
-                res.status(500).json({ error: 'Internal server error' });
-            }
-        });
-        this.deleteVacation = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { id } = req.params;
-                yield this.vacationService.deleteVacation(parseInt(id));
-                res.status(204).send();
-            }
-            catch (error) {
-                console.error('Error deleting vacation:', error);
-                res.status(500).json({ error: 'Internal server error' });
-            }
-        });
-        this.getVacationById = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { id } = req.params;
-                const vacation = yield this.vacationService.getVacationById(parseInt(id));
-                if (vacation) {
-                    res.json(vacation);
-                }
-                else {
-                    res.status(404).json({ error: 'Vacation not found' });
-                }
-            }
-            catch (error) {
-                console.error('Error fetching vacation:', error);
-                res.status(500).json({ error: 'Internal server error' });
-            }
-        });
+exports.vacationRouter = void 0;
+const express_1 = __importDefault(require("express"));
+const statusEnum_1 = require("../models/statusEnum"); // Assuming you have a status enum
+const appConfig_1 = require("../utils/appConfig"); // Assuming you have some app configuration
+const vacationService_1 = require("../services/vacationService");
+exports.vacationRouter = express_1.default.Router();
+// Get all vacations
+exports.vacationRouter.get(appConfig_1.appConfig.routePrefix + "/vacations", async (req, res, next) => {
+    try {
+        console.log('Fetching all vacations');
+        const vacations = await (0, vacationService_1.getAllVacations)();
+        console.log('Vacations fetched:', vacations);
+        res.status(statusEnum_1.StatusCode.Ok).json(vacations);
     }
-}
-exports.VacationController = VacationController;
+    catch (error) {
+        console.error('Error fetching vacations:', error);
+        res.status(statusEnum_1.StatusCode.ServerError).send("Error. Please try again later");
+    }
+});
+// // Create a new vacation
+// vacationRouter.post(appConfig.routePrefix + "/vacations", verifyTokenAdminMW, async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const { title, description, price, startDate, endDate } = req.body;
+//         const imageUrl = req.file ? `/images/${req.file.filename}` : null;
+//         const vacation = await vacationService.createVacation({
+//             destination: title, // Assuming 'title' is used as 'destination'
+//             description,
+//             price: parseFloat(price),
+//             startDate: new Date(startDate),
+//             endDate: new Date(endDate),
+//             imageUrl
+//         });
+//         res.status(201).json({ message: 'Vacation created successfully', vacation });
+//     } catch (error) {
+//         console.error('Error creating vacation:', error);
+//         res.status(StatusCode.ServerError).json({ message: 'Error creating vacation', error: (error as Error).message });
+//     }
+// });
+// // Update a vacation
+// vacationRouter.put(appConfig.routePrefix + "/vacations/:id", verifyTokenAdminMW, async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const { id } = req.params;
+//         const updatedVacation = await vacationService.updateVacation(parseInt(id), req.body, req.file);
+//         res.status(StatusCode.Ok).json(updatedVacation);
+//     } catch (error) {
+//         console.error('Error updating vacation:', error);
+//         res.status(StatusCode.ServerError).send("Error. Please try again later");
+//     }
+// });
+// // Delete a vacation
+// vacationRouter.delete(appConfig.routePrefix + "/vacations/:id", verifyTokenAdminMW, async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const { id } = req.params;
+//         await vacationService.deleteVacation(parseInt(id));
+//         res.status(StatusCode.NoContent).send();
+//     } catch (error) {
+//         console.error('Error deleting vacation:', error);
+//         res.status(StatusCode.ServerError).send("Error. Please try again later");
+//     }
+// });
+// // Get a vacation by ID
+// vacationRouter.get(appConfig.routePrefix + "/vacations/:id", verifyTokenMW, async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const { id } = req.params;
+//         const vacation = await vacationService.getVacationById(parseInt(id));
+//         if (vacation) {
+//             res.status(StatusCode.Ok).json(vacation);
+//         } else {
+//             res.status(StatusCode.NotFound).json({ error: 'Vacation not found' });
+//         }
+//     } catch (error) {
+//         console.error('Error fetching vacation:', error);
+//         res.status(StatusCode.ServerError).send("Error. Please try again later");
+//     }
+// });
+// // Get public vacations
+// vacationRouter.get(appConfig.routePrefix + "/public-vacations", async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         console.log('Fetching public vacations');
+//         const vacations = await vacationService.getPublicVacations();
+//         console.log('Public vacations fetched:', vacations);
+//         res.status(StatusCode.Ok).json(vacations);
+//     } catch (error) {
+//         console.error('Error fetching public vacations:', error);
+//         res.status(StatusCode.ServerError).send("Error. Please try again later");
+//     }
+// });

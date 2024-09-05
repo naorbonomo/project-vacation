@@ -1,3 +1,5 @@
+// backend/src/services/followService.ts
+
 import { Pool } from 'mysql2/promise';
 
 export class FollowService {

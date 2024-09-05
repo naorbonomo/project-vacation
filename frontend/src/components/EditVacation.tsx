@@ -1,3 +1,5 @@
+// backend/src/components/EditVacation.tsx
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -26,11 +28,11 @@ const EditVacation: React.FC = () => {
   useEffect(() => {
     const fetchVacation = async () => {
       try {
-        const token = localStorage.getItem('token');
+        // const token = localStorage.getItem('token');
         const response = await axios.get(`http://localhost:4002/api/vacations/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+        //   headers: {
+        //     Authorization: `Bearer ${token}`
+        //   }
         });
         const vacation = response.data;
         setFormData({

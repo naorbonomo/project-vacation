@@ -1,3 +1,5 @@
+// backend/src/DB/initialDB.ts
+
 import runQuery from "./dal"
 
 const createTables = async () => {

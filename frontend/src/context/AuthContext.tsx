@@ -1,3 +1,5 @@
+// src/context/AuthContext.tsx
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
 interface AuthContextType {
@@ -5,7 +7,7 @@ interface AuthContextType {
   isAdmin: boolean;
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   setIsAdmin: React.Dispatch<React.SetStateAction<boolean>>;
-  login: (token: string, isAdmin: boolean) => void;
+  login: (token: string, isAdmin: boolean | undefined) => void;
   logout: () => void;
 }
 
@@ -24,11 +26,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = (token: string, isAdmin: boolean) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('isAdmin', isAdmin.toString());
-    setIsAuthenticated(true);
-    setIsAdmin(isAdmin);
+  const login = (token: string, isAdmin: boolean | undefined) => {
+    if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('isAdmin', isAdmin ? 'true' : 'false');
+      setIsAuthenticated(true);
+      setIsAdmin(!!isAdmin);
+    } else {
+      console.error('Login failed: No token provided');
+    }
   };
 
   const logout = () => {

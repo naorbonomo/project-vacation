@@ -1,3 +1,5 @@
+// backend/src/DB/dal.ts
+
 import mysql from "mysql2";
 import { appConfig } from "../utils/appConfig";
 

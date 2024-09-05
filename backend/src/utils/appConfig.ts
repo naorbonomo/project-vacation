@@ -1,3 +1,5 @@
+// backend/src/utils/appConfig.ts
+
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -13,11 +15,11 @@ interface DbConfig {
 }
 
 class BaseAppConfig {
-    readonly routePrefix = "/api/v1";
+    readonly routePrefix = "/api";
     readonly errorLogFile = path.join(__dirname, "..", "logs", "error.log");
     readonly accessLogFile = path.join(__dirname, "..", "logs", "access.log");
     readonly doormanKey = process.env.DOORMAN_KEY;
-    readonly jwtSecrete = process.env.JWT_SECRET;
+    readonly jwtSecrete = process.env.JWT_SECRET || 'jwt_secret-key-or-whatever@#$%';
 
     readonly dbConfig: DbConfig = {
         user: process.env.DB_USER,
