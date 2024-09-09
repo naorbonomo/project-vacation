@@ -33,5 +33,6 @@ isDbServerUp().then((isUp) => { // run server only if DB-server is active
         server.listen(appConfig.port, () => {
             console.log(`Listening on http://localhost:${appConfig.port}`);
         })
+        console.log(`Listening on http://localhost:${appConfig.port}`);
     } else {console.error("\n\n****\nDB server is not up!!!\n****\n");}
 })
