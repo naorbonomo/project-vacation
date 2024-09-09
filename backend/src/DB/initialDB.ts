@@ -43,13 +43,13 @@ const createTables = async () => {
 
 const createSampleData = async () => {
     // Insert sample users
-    // let Q = `
-    //     INSERT INTO users (first_name, last_name, email, password, role) VALUES
-    //     ('John', 'Doe', 'john@example.com', 'password123', 'Regular User'),
-    //     ('Jane', 'Smith', 'jane@example.com', 'password456', 'Regular User'),
-    //     ('Admin', 'User', 'admin@example.com', 'adminpass', 'Admin');
-    // `;
-    // await runQuery(Q);
+    let Q = `
+        INSERT INTO users (first_name, last_name, email, password, role) VALUES
+        ('John', 'Doe', 'john@example.com', 'password123', 'Regular User'),
+        ('Jane', 'Smith', 'jane@example.com', 'password456', 'Regular User'),
+        ('Admin', 'User', 'admin@example.com', 'adminpass', 'Admin');
+    `;
+    await runQuery(Q);
 
     // Insert sample vacations
    let Q = `

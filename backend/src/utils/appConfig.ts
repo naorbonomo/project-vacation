@@ -28,7 +28,7 @@ class BaseAppConfig {
 }
 
 class DevAppConfig extends BaseAppConfig {
-    readonly port = Number(process.env.PORT) || 4002;
+    readonly port = 5000;
     readonly dbConfig: DbConfig = {
         ...this.dbConfig,
         host: process.env.DB_HOST || 'localhost',
@@ -38,7 +38,7 @@ class DevAppConfig extends BaseAppConfig {
 }
 
 class ProdAppConfig extends BaseAppConfig {
-    readonly port = 443;
+    readonly port = 500;
     readonly dbConfig: DbConfig = {
         ...this.dbConfig,
         host: 'aws://db:/localZone-use123123',//made up host
