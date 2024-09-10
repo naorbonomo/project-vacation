@@ -1,7 +1,7 @@
 // src/utils/appconfig.ts
 
 const APP_CONFIG = {
-    FRONTEND_PORT: 4002,
+    FRONTEND_PORT: 5000,
     API_BASE_URL: '', // Placeholder
 };
 
