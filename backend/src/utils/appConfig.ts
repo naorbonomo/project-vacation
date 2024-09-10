@@ -1,14 +1,13 @@
-// backend/src/utils/appConfig.ts
-
 import dotenv from 'dotenv';
 import path from 'path';
 
 // Load environment variables
 dotenv.config();
+console.log("DB Environment Variables Loaded: ", process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_PORT);
 
 interface DbConfig {
-    user: string | undefined;
-    password: string | undefined;
+    user: string;
+    password: string;
     host?: string;
     port?: number;
     database?: string;
@@ -22,8 +21,8 @@ class BaseAppConfig {
     readonly jwtSecrete = process.env.JWT_SECRET || 'jwt_secret-key-or-whatever@#$%';
 
     readonly dbConfig: DbConfig = {
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD
+        user: process.env.DB_USER || 'root',  // Ensure DB_USER is loaded
+        password: process.env.DB_PASSWORD || '',  // Ensure DB_PASSWORD is loaded and handle empty
     };
 }
 
@@ -41,9 +40,9 @@ class ProdAppConfig extends BaseAppConfig {
     readonly port = 5000;
     readonly dbConfig: DbConfig = {
         ...this.dbConfig,
-        host: 'aws://db:/localZone-use123123',//made up host
-        port: 3306,//made up port
-        database: 'project_vacation',//made up database
+        host: 'localhost', // Production host
+        port: 3306,
+        database: 'project_vacation', // Production database
     };
 }
 
