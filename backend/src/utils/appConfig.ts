@@ -33,7 +33,7 @@ class DevAppConfig extends BaseAppConfig {
         ...this.dbConfig,
         host: process.env.DB_HOST || 'localhost',
         port: Number(process.env.DB_PORT) || 3306,
-        database: process.env.DB_NAME || 'vacation-project',
+        database: process.env.DB_NAME || 'project_vacation',
     };
 }
 
@@ -43,7 +43,7 @@ class ProdAppConfig extends BaseAppConfig {
         ...this.dbConfig,
         host: 'aws://db:/localZone-use123123',//made up host
         port: 3306,//made up port
-        database: 'vacation-project_prod',//made up database
+        database: 'project_vacation',//made up database
     };
 }
 
