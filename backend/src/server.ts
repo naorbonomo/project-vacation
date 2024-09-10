@@ -1,7 +1,7 @@
 // backend/src/server.ts
 
 import express from 'express';
-// import cors from 'cors';
+import cors from 'cors';
 import path from 'path';
 import { appConfig } from "./utils/appConfig";
 import { logMW } from "./middleware/logMW";
@@ -16,7 +16,7 @@ const server = express();
 server.use(expressRateLimit({windowMs: 1000,max: 50, message: "Too many requests, you reached the limit."}))
 
 // server.use(cors({origin: ["http://localhost:3000", "http://localhost:3001"]})); 
-// server.use(cors({ origin: "*" })); // Development use only! Change to specific origin later
+server.use(cors({ origin: "*" })); // Development use only! Change to specific origin later
 
 server.use(logMW); // log
 
