@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import APP_CONFIG from '../utils/appconfig';
 
 const VacationForm: React.FC = () => {
   const [vacation, setVacation] = useState({
@@ -20,7 +21,7 @@ const VacationForm: React.FC = () => {
   useEffect(() => {
     if (id) {
       setIsEdit(true);
-      axios.get(`http://localhost:4002/api/vacations/${id}`)
+      axios.get(`${APP_CONFIG.API_BASE_URL}/api/vacations/${id}`)
         .then((response) => {
           setVacation({
             destination: response.data.destination,
@@ -61,10 +62,10 @@ const VacationForm: React.FC = () => {
 
     try {
       if (isEdit) {
-        await axios.put(`http://localhost:4002/api/vacations/${id}`, formData);
+        await axios.put(`${APP_CONFIG.API_BASE_URL}/api/vacations/${id}`, formData);
         alert('Vacation updated successfully');
       } else {
-        await axios.post('http://localhost:4002/api/vacations', formData);
+        await axios.post('${APP_CONFIG.API_BASE_URL}/api/vacations', formData);
         alert('Vacation added successfully');
       }
       navigate('/');
