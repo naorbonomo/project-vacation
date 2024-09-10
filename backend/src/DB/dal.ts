@@ -3,6 +3,8 @@
 import mysql from "mysql2";
 import { appConfig } from "../utils/appConfig";
 
+console.log('Database configuration:', appConfig.dbConfig);
+
 const connection = mysql.createPool({
     host: appConfig.dbConfig.host,
     user: appConfig.dbConfig.user,
@@ -17,6 +19,8 @@ export default function runQuery(q: string, params: any[]=[]): Promise<any[]> {
 
         connection.query(q, params, (err, res) => {
             if (err) {
+                console.error("Database query error:", err);  // Log query error
+
                 reject(err);
                 return;
             }

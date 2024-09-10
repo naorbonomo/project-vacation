@@ -6,6 +6,8 @@ export async function isDbServerUp() {
         await runQuery("select 1;");
         return true;
     } catch (error) {
+        console.error("Error in isDbServerUp: ", error);  // Log the error
+
         return false;        
     }
 }

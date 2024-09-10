@@ -38,7 +38,7 @@ class DevAppConfig extends BaseAppConfig {
 }
 
 class ProdAppConfig extends BaseAppConfig {
-    readonly port = 500;
+    readonly port = 5000;
     readonly dbConfig: DbConfig = {
         ...this.dbConfig,
         host: 'aws://db:/localZone-use123123',//made up host
