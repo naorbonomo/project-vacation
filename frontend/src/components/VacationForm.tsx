@@ -1,5 +1,4 @@
 // frontend/src/components/VacationForm.tsx
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -12,11 +11,11 @@ const VacationForm: React.FC = () => {
     startDate: '',
     endDate: '',
     price: '',
-    image: null as File | null,
   });
+  const [file, setFile] = useState<File | null>(null);
   const [isEdit, setIsEdit] = useState(false);
   const navigate = useNavigate();
-  const { id } = useParams();  // For edit mode
+  const { id } = useParams();
 
   useEffect(() => {
     if (id) {
@@ -29,7 +28,6 @@ const VacationForm: React.FC = () => {
             startDate: new Date(response.data.startDate).toISOString().slice(0, 10),
             endDate: new Date(response.data.endDate).toISOString().slice(0, 10),
             price: response.data.price,
-            image: null,
           });
         })
         .catch((error) => console.error("Error fetching vacation data", error));
@@ -41,9 +39,9 @@ const VacationForm: React.FC = () => {
     setVacation({ ...vacation, [name]: value });
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setVacation({ ...vacation, image: e.target.files[0] });
+      setFile(e.target.files[0]);
     }
   };
 
@@ -56,8 +54,8 @@ const VacationForm: React.FC = () => {
     formData.append('startDate', vacation.startDate);
     formData.append('endDate', vacation.endDate);
     formData.append('price', vacation.price);
-    if (vacation.image) {
-      formData.append('image', vacation.image); // Add image only if updated
+    if (file) {
+      formData.append('image', file);
     }
 
     try {
@@ -65,7 +63,7 @@ const VacationForm: React.FC = () => {
         await axios.put(`${APP_CONFIG.API_BASE_URL}/api/vacations/${id}`, formData);
         alert('Vacation updated successfully');
       } else {
-        await axios.post('${APP_CONFIG.API_BASE_URL}/api/vacations', formData);
+        await axios.post(`${APP_CONFIG.API_BASE_URL}/api/vacations`, formData);
         alert('Vacation added successfully');
       }
       navigate('/');
@@ -98,7 +96,7 @@ const VacationForm: React.FC = () => {
       </div>
       <div>
         <label>Image:</label>
-        <input type="file" name="image" onChange={handleImageChange} required />
+        <input type="file" name="image" onChange={handleFileChange} />
       </div>
       <button type="submit">{isEdit ? 'Update Vacation' : 'Add Vacation'}</button>
     </form>

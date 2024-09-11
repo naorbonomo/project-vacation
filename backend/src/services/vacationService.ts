@@ -1,4 +1,7 @@
 // backend/services/vacationService.ts
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { s3Client } from "../utils/s3config";
+import { v4 as uuidv4 } from 'uuid';
 
 import { ValidationError, NotFoundError } from '../models/exceptions';
 import VacationModel from '../models/vacationModel';
@@ -13,39 +16,61 @@ export async function getAllVacations(): Promise<VacationModel[]> {
     console.log('Query result:', res);
     return res.map((v: any) => {
         const vacation = new VacationModel(v);
-        vacation.imageUrl = v.image_filename ? `http://localhost:${appConfig.port}/images/${v.image_filename}` : '';
+        vacation.imageUrl = v.image_filename ? `http://localhost:${appConfig.port}/images/${v.image_filename}` : '';//TODO change from localhost to the server address
         return vacation;
     });
 }
 
-export async function createVacation(vacationData: Partial<VacationModel>): Promise<VacationModel> {
+export async function createVacation(vacationData: Partial<VacationModel>, file?: Express.Multer.File): Promise<VacationModel> {
     console.log('Received vacation data:', vacationData);
-
-    const { destination, description, startDate, endDate, price, imageUrl = '' } = vacationData;
-
+  
+    const { destination, description, startDate, endDate, price } = vacationData;
+  
     if (!destination) throw new ValidationError('Missing required field: destination');
     if (!description) throw new ValidationError('Missing required field: description');
     if (!startDate) throw new ValidationError('Missing required field: startDate');
     if (!endDate) throw new ValidationError('Missing required field: endDate');
     if (!price) throw new ValidationError('Missing required field: price');
-
-    console.log('Creating vacation with data:', vacationData);
-
+  
+    let imageUrl = '';
+  
+    if (file) {
+      const fileExtension = file.originalname.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExtension}`;
+  
+      const uploadParams = {
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Key: fileName,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      };
+  
+      try {
+        await s3Client.send(new PutObjectCommand(uploadParams));
+        imageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+      } catch (error) {
+        console.error('Error uploading to S3:', error);
+        throw new Error('Failed to upload image to S3');
+      }
+    }
+  
+    console.log('Creating vacation with data:', { ...vacationData, imageUrl });
+  
     const q = `
       INSERT INTO vacations (destination, description, start_date, end_date, price, image_filename)
       VALUES (?, ?, ?, ?, ?, ?)
     `;
-    const params = [destination, description, startDate, endDate, price, imageUrl || ''];
-
+    const params = [destination, description, startDate, endDate, price, imageUrl];
+  
     try {
       const result = await runQuery(q, params) as any;
       console.log('Vacation created successfully:', result);
-      return { id: result.insertId, ...vacationData } as VacationModel;
+      return { id: result.insertId, ...vacationData, imageUrl } as VacationModel;
     } catch (error) {
       console.error('Database error:', error);
       throw new ValidationError('Failed to create vacation in database: ' + (error as Error).message);
     }
-}
+  }
 
 export async function deleteVacation(id: number): Promise<void> {
     console.log(`Attempting to delete vacation with id: ${id}`);
@@ -99,9 +124,9 @@ export async function updateVacation(id: number, vacationData: Partial<VacationM
         params.push(vacationData.price);
     }
     if (vacationData.imageUrl !== undefined) {
-        updates.push('image_filename = ?');
+        updates.push('image_url = ?');
         params.push(vacationData.imageUrl);
-    }
+      }
 
     if (updates.length === 0) {
         console.log('No fields to update');

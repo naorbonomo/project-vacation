@@ -1,3 +1,5 @@
+// backend/src/utils/appConfig.ts
+
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -23,6 +25,12 @@ class BaseAppConfig {
     readonly dbConfig: DbConfig = {
         user: process.env.DB_USER || 'root',  // Ensure DB_USER is loaded
         password: process.env.DB_PASSWORD || '',  // Ensure DB_PASSWORD is loaded and handle empty
+    };
+    readonly s3Config = {
+        region: process.env.AWS_REGION || 'us-east-1',
+        bucketName: process.env.AWS_S3_BUCKET_NAME || 'project-vacation',
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
 }
 

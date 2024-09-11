@@ -3,14 +3,17 @@
 import express, { Request, Response, NextFunction } from "express";
 import { ValidationError, NotFoundError } from '../models/exceptions';
 import multer from 'multer';
-import { upload } from '../utils/uploadConfig';
+// import { upload } from '../utils/uploadConfig';
 
 import { StatusCode } from "../models/statusEnum";
 import { appConfig } from "../utils/appConfig"; 
 import { createVacation, deleteVacation, getAllVacations, getVacationById, updateVacation } from "../services/vacationService";
+import { uploadFileToS3 } from "../utils/s3Utils";
 
 export const vacationRouter = express.Router();
 // const upload = multer();
+const upload = multer({ storage: multer.memoryStorage() });
+
 
 // get all vacations
 vacationRouter.get(appConfig.routePrefix + "/vacations",  async (req: Request, res: Response, next: NextFunction) => {
@@ -27,35 +30,34 @@ vacationRouter.get(appConfig.routePrefix + "/vacations",  async (req: Request, r
 
 // create a vacation
 vacationRouter.post(
-    appConfig.routePrefix + "/vacations", 
-    upload.single('image'), 
+    appConfig.routePrefix + "/vacations",
+    upload.single('image'),
     async (req: Request, res: Response, next: NextFunction) => {
-    try {
+      try {
         console.log('Received request body:', req.body);
         console.log('Received file:', req.file);
-
+  
         const { destination, description, price, startDate, endDate } = req.body;
-        const imageUrl = req.file ? req.file.filename : '';
-
+  
         const vacation = await createVacation({
-            destination, 
-            description,
-            price: price ? parseFloat(price) : undefined,
-            startDate: startDate ? new Date(startDate) : undefined,
-            endDate: endDate ? new Date(endDate) : undefined,
-            imageUrl
-        });
-
+          destination,
+          description,
+          price: price ? parseFloat(price) : undefined,
+          startDate: startDate ? new Date(startDate) : undefined,
+          endDate: endDate ? new Date(endDate) : undefined,
+        }, req.file);
+  
         res.status(201).json({ message: 'Vacation created successfully', vacation });
-    } catch (error) {
+      } catch (error) {
         console.error('Error creating vacation:', error);
         if (error instanceof Error) {
-            res.status(400).json({ message: 'Validation error', error: error.message });
+          res.status(400).json({ message: 'Validation error', error: error.message });
         } else {
-            res.status(StatusCode.ServerError).json({ message: 'Error creating vacation', error: 'Unknown error' });
+          res.status(StatusCode.ServerError).json({ message: 'Error creating vacation', error: 'Unknown error' });
         }
+      }
     }
-});
+  );
 
 // delete a vacation
 vacationRouter.delete(

@@ -1,4 +1,4 @@
-// App.tsx
+// frontend/src/App.tsx
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import VacationList from './components/VacationList';
