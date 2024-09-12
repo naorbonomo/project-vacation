@@ -23,7 +23,7 @@ class BaseAppConfig {
     readonly jwtSecrete = process.env.JWT_SECRET || 'jwt_secret-key-or-whatever@#$%';
 
     readonly dbConfig: DbConfig = {
-        user: process.env.DB_USER || 'root',  // Ensure DB_USER is loaded
+        user: process.env.DB_USER || 'my_user',  // Ensure DB_USER is loaded
         password: process.env.DB_PASSWORD || '',  // Ensure DB_PASSWORD is loaded and handle empty
     };
     readonly s3Config = {
