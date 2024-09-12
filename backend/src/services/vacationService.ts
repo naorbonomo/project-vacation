@@ -1,12 +1,16 @@
 // backend/services/vacationService.ts
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3Client } from "../utils/s3config";
+// import { s3Client } from "../utils/s3config";
 import { v4 as uuidv4 } from 'uuid';
 
 import { ValidationError, NotFoundError } from '../models/exceptions';
 import VacationModel from '../models/vacationModel';
 import runQuery from '../DB/dal';
 import { appConfig } from '../utils/appConfig';
+import fs from 'fs';
+const AWS = require('aws-sdk');
+
+const s3 = new AWS.S3();
 
 export async function getAllVacations(): Promise<VacationModel[]> {
     console.log('Executing getAllVacations query');
@@ -46,12 +50,12 @@ export async function createVacation(vacationData: Partial<VacationModel>, file?
       };
   
       try {
-        await s3Client.send(new PutObjectCommand(uploadParams));
-        imageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
-      } catch (error) {
-        console.error('Error uploading to S3:', error);
-        throw new Error('Failed to upload image to S3');
-      }
+        await s3.putObject(uploadParams).promise();
+        imageUrl = `http://${process.env.AWS_S3_BUCKET_NAME}.s3-website-${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+    } catch (error) {
+        console.error('Error uploading file to S3:', error);
+        throw new Error('Failed to upload image');
+    }
     }
   
     console.log('Creating vacation with data:', { ...vacationData, imageUrl });
