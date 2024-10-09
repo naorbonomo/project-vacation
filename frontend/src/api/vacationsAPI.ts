@@ -8,3 +8,8 @@ export async function getVacations(): Promise<Vacation[]> {
 }
 
 
+// New function to fetch vacations with follower counts
+export async function getVacationsWithFollowers(): Promise<Vacation[]> {
+    const response = await axios.get(`${APP_CONFIG.API_BASE_URL}/api/vacations-with-followers`);
+    return response.data;
+}

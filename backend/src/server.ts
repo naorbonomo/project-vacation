@@ -10,6 +10,7 @@ import { vacationRouter } from './controllers/vacationController';
 import expressRateLimit from "express-rate-limit";
 import catchAll from './middleware/catchAll';
 import { authRoutes } from "./controllers/authControllers";
+import { followRouter } from './controllers/followController';
 
 const server = express();
  
@@ -26,6 +27,8 @@ server.use('/images', express.static(path.join(__dirname, '../uploads'))); // Se
 
 server.use("/", vacationRouter);
 server.use("/", authRoutes)
+server.use("/", followRouter); // Add followRouter to handle follow-related routes
+
 server.use(catchAll);
 // console.log(`Listening on http://localhost:${appConfig.port}`);
 

@@ -11,6 +11,7 @@ interface VacationInterface {
     end_date: Date;   // Matches the database field
     price: number;
     imageUrl: string;
+    followersCount: number;
 }
 
 export default class VacationModel {
@@ -21,7 +22,9 @@ export default class VacationModel {
         public start_date?: Date, // Matches the database field
         public end_date?: Date,   // Matches the database field
         public price?: number,
-        public imageUrl?: string
+        public imageUrl?: string,
+        public followersCount?: number
+
     ) {}
 
     private static validateSchema = Joi.object({

@@ -7,7 +7,7 @@ import multer from 'multer';
 
 import { StatusCode } from "../models/statusEnum";
 import { appConfig } from "../utils/appConfig"; 
-import { createVacation, deleteVacation, getAllVacations, getVacationById, updateVacation } from "../services/vacationService";
+import { createVacation, deleteVacation, getAllVacations, getVacationById, getVacationsWithFollowers, updateVacation } from "../services/vacationService";
 import { uploadFileToS3 } from "../utils/s3Utils";
 
 export const vacationRouter = express.Router();
@@ -142,4 +142,15 @@ vacationRouter.get(
     }
 );
 
-
+// Get all vacations with followers count
+vacationRouter.get(appConfig.routePrefix + "/vacations-with-followers", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        console.log('Fetching vacations with followers count');
+        const vacations = await getVacationsWithFollowers();
+        console.log('Vacations with followers fetched:', vacations);
+        res.status(StatusCode.Ok).json(vacations);
+    } catch (error) {
+        console.error('Error fetching vacations with followers:', error);
+        res.status(StatusCode.ServerError).send("Error. Please try again later");
+    }
+});

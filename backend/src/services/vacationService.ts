@@ -229,3 +229,23 @@ export async function getVacationById(id: number): Promise<VacationModel> {
     }
 }
 
+export async function getVacationsWithFollowers(): Promise<VacationModel[]> {
+    console.log('Executing getVacationsWithFollowers query');
+    const q = `
+        SELECT v.*, COUNT(f.user_id) AS followersCount
+        FROM vacations v
+        LEFT JOIN followers f ON v.vacation_id = f.vacation_id
+        GROUP BY v.vacation_id
+        ORDER BY v.start_date ASC;
+    `;
+    const res = await runQuery(q);
+
+    console.log('Query result:', res);
+    return res.map((v: any) => {
+        const vacation = new VacationModel(v);
+        vacation.imageUrl = v.image_filename ? `http://localhost:${appConfig.port}/images/${v.image_filename}` : '';
+        vacation.followersCount = v.followersCount; // Include followers count
+        return vacation;
+    });
+}
+

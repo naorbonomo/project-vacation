@@ -7,6 +7,7 @@ import Register from './components/Register';
 import VacationForm from './components/VacationForm'; 
 import VacationEdit from './components/VacationEdit';
 import CityAnimation from './components/CityAnimation'; // Import the CityAnimation component
+import VacationReport from './components/VacationReport'; // Import the VacationReport component
 
 const App: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -41,7 +42,12 @@ const App: React.FC = () => {
     ) : (
       <>
         <li>Hello, {user.first_name}</li>
-        {user.role === 'Admin' && <li><Link to="/vacation-form">Add Vacation</Link></li>}
+        {user.role === 'Admin' && (
+          <>
+            <li><Link to="/vacation-form">Add Vacation</Link></li>
+            <li><Link to="/vacation-report">Vacation Report</Link></li> {/* Link for admin */}
+          </>
+        )}
         <li><button onClick={logout}>Logout</button></li>
       </>
     )}
@@ -55,6 +61,9 @@ const App: React.FC = () => {
           <Route path="/vacation-form" element={<VacationForm />} /> 
           <Route path="/vacation-form/:id" element={<VacationForm />} /> 
           <Route path="/vacation-edit/:id" element={<VacationEdit />} />
+          {user?.role === 'Admin' && (
+            <Route path="/vacation-report" element={<VacationReport />} />   
+        )}
         </Routes>
       </div>
     </Router>
