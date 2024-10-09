@@ -85,4 +85,31 @@ export class UserService {
 
     return res.map((u: any) => new UserModel(u));
   }
+
+
 }
+
+export async function getUserIdByEmail(email: string): Promise<number | null> {
+    console.log("getUserIdByEmail SQL - searching for user with email:", email);
+
+    const query = 'SELECT user_id FROM users WHERE email = ?';
+    try {
+        const result = await runQuery(query, [email]);
+        console.log("SQL Query Result:", result);
+
+        // Assuming result is an array of rows, extract the first row
+        const rows = Array.isArray(result) ? result : result[0];
+        
+        if (rows && rows.length > 0 && rows[0].user_id) {
+            console.log("User found with ID:", rows[0].user_id);
+            return rows[0].user_id;
+        } else {
+            console.log("No user found with the provided email.");
+            return null;
+        }
+    } catch (error) {
+        console.error("Error during SQL query in getUserIdByEmail:", error);
+        throw error;
+    }
+}
+

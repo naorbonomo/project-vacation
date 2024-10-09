@@ -16,6 +16,8 @@ interface Vacation {
         image_filename: string;
     },
     imageUrl: string;
+    followersCount: number; // To display follower count
+    isFollowed: boolean; // Track if the user has followed this vacation
 }
 
 type ApiResponse = Vacation[];
@@ -32,7 +34,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
             setError(null);
 
             try {
-                const response: AxiosResponse<ApiResponse> = await axios.get(`${APP_CONFIG.API_BASE_URL}/api/vacations`);
+                const response: AxiosResponse<ApiResponse> = await axios.get(`${APP_CONFIG.API_BASE_URL}/api/vacations-with-followers`);
                 setVacations(response.data);
             } catch (error) {
                 console.error('Error fetching vacations:', error);
@@ -44,6 +46,45 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
 
         fetchVacations();
     }, []);
+
+    const handleFollow = async (vacationId: number) => {
+        try {
+            console.log('Sending follow request with:', {
+                user_id: user.id,
+                vacation_id: vacationId,
+            });
+            const response = await axios.post(`${APP_CONFIG.API_BASE_URL}/api/follow`, {
+                user_id: user.id,
+                vacation_id: vacationId,
+            });
+            console.log('Follow response:', response.data);
+            setVacations(vacations.map(v =>
+                v.id.vacation_id === vacationId
+                    ? { ...v, isFollowed: true, followersCount: v.followersCount + 1 }
+                    : v
+            ));
+        } catch (error) {
+            console.error('Error following vacation:', error);
+            alert('Failed to follow the vacation. Please try again later.');
+        }
+    };
+
+    const handleUnfollow = async (vacationId: number) => {
+        try {
+            await axios.post(`${APP_CONFIG.API_BASE_URL}/api/unfollow`, {
+                user_id: user.id,
+                vacation_id: vacationId,
+            });
+            setVacations(vacations.map(v =>
+                v.id.vacation_id === vacationId
+                    ? { ...v, isFollowed: false, followersCount: v.followersCount - 1 }
+                    : v
+            ));
+        } catch (error) {
+            console.error('Error unfollowing vacation:', error);
+            alert('Failed to unfollow the vacation. Please try again later.');
+        }
+    };
 
     const handleDelete = async (id: number) => {
         if (window.confirm('Are you sure you want to delete this vacation?')) {
@@ -89,11 +130,19 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                             <p>Start Date: {new Date(vacation.id.start_date).toLocaleDateString()}</p>
                             <p>End Date: {new Date(vacation.id.end_date).toLocaleDateString()}</p>
                             <p>Price: ${parseFloat(vacation.id.price).toFixed(2)}</p>
+                            <p>Followers: {vacation.followersCount}</p>
                             {user.role === 'Admin' && (
                                 <>
                                     <button onClick={() => handleEdit(vacation.id.vacation_id)}>Edit</button>
                                     <button onClick={() => handleDelete(vacation.id.vacation_id)}>Delete</button>
                                 </>
+                            )}
+                            {user.role !== 'Admin' && (
+                                vacation.isFollowed ? (
+                                    <button onClick={() => handleUnfollow(vacation.id.vacation_id)}>Unfollow</button>
+                                ) : (
+                                    <button onClick={() => handleFollow(vacation.id.vacation_id)}>Follow</button>
+                                )
                             )}
                         </div>
                     ))}

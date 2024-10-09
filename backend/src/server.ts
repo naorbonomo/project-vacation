@@ -11,9 +11,10 @@ import expressRateLimit from "express-rate-limit";
 import catchAll from './middleware/catchAll';
 import { authRoutes } from "./controllers/authControllers";
 import { followRouter } from './controllers/followController';
+import { userRouter } from './controllers/userController';
 
 const server = express();
- 
+
 server.use(expressRateLimit({windowMs: 1000,max: 50, message: "Too many requests, you reached the limit."}))
 
 // server.use(cors({origin: ["http://localhost:3000", "http://localhost:3001"]})); 
@@ -28,6 +29,7 @@ server.use('/images', express.static(path.join(__dirname, '../uploads'))); // Se
 server.use("/", vacationRouter);
 server.use("/", authRoutes)
 server.use("/", followRouter); // Add followRouter to handle follow-related routes
+server.use('/', userRouter);
 
 server.use(catchAll);
 // console.log(`Listening on http://localhost:${appConfig.port}`);
