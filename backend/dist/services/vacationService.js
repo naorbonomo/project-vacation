@@ -55,7 +55,7 @@ function createVacation(vacationData, file) {
         let imageUrl = '';
         if (file) {
             const fileExtension = file.originalname.split('.').pop();
-            const fileName = `${(0, uuid_1.v4)()}.${fileExtension}`;
+            const fileName = `images/${(0, uuid_1.v4)()}.${fileExtension}`;
             const uploadParams = {
                 Bucket: process.env.AWS_S3_BUCKET_NAME,
                 Key: fileName,
@@ -64,7 +64,7 @@ function createVacation(vacationData, file) {
             };
             try {
                 yield s3.putObject(uploadParams).promise();
-                imageUrl = `http://${process.env.AWS_S3_BUCKET_NAME}.s3-website-${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+                imageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileName}`; // Fixed URL generation
             }
             catch (error) {
                 console.error('Error uploading file to S3:', error);
@@ -110,44 +110,69 @@ function deleteVacation(id) {
         }
     });
 }
-function updateVacation(id, vacationData) {
+function updateVacation(id, vacationData, file) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Attempting to update vacation with id: ${id}`);
         console.log('Update data received:', vacationData);
+        // Fetch the current vacation data
+        const currentVacation = yield getVacationById(id);
+        if (!currentVacation) {
+            throw new exceptions_1.NotFoundError(`Vacation with id ${id} not found`);
+        }
+        // Prepare update fields
         const updates = [];
         const params = [];
-        if (vacationData.destination !== undefined) {
-            updates.push('destination = ?');
-            params.push(vacationData.destination);
-        }
-        if (vacationData.description !== undefined) {
-            updates.push('description = ?');
-            params.push(vacationData.description);
-        }
-        if (vacationData.startDate !== undefined) {
-            updates.push('start_date = ?');
-            params.push(vacationData.startDate);
-        }
-        if (vacationData.endDate !== undefined) {
-            updates.push('end_date = ?');
-            params.push(vacationData.endDate);
-        }
-        if (vacationData.price !== undefined) {
-            updates.push('price = ?');
-            params.push(vacationData.price);
-        }
-        if (vacationData.imageUrl !== undefined) {
-            updates.push('image_url = ?');
-            params.push(vacationData.imageUrl);
+        // Helper function to add update field
+        const addUpdateField = (field, value) => {
+            if (value !== undefined) {
+                updates.push(`${field} = ?`);
+                params.push(value);
+            }
+        };
+        // Add fields to update
+        addUpdateField('destination', vacationData.destination);
+        addUpdateField('description', vacationData.description);
+        addUpdateField('startDate', vacationData.startDate);
+        addUpdateField('endDate', vacationData.endDate);
+        addUpdateField('price', vacationData.price);
+        // Handle image update
+        if (file) {
+            const fileExtension = file.originalname.split('.').pop();
+            const fileName = `images/${(0, uuid_1.v4)()}.${fileExtension}`;
+            const uploadParams = {
+                Bucket: process.env.AWS_S3_BUCKET_NAME,
+                Key: fileName,
+                Body: file.buffer,
+                ContentType: file.mimetype,
+            };
+            try {
+                yield s3.putObject(uploadParams).promise();
+                const newImageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileName}`;
+                // Add image_filename to update fields
+                addUpdateField('imageUrl', newImageUrl);
+                // Delete old image if it exists
+                if (currentVacation.imageUrl) {
+                    const oldImageKey = currentVacation.imageUrl.split('.com/')[1];
+                    const deleteParams = {
+                        Bucket: process.env.AWS_S3_BUCKET_NAME,
+                        Key: oldImageKey,
+                    };
+                    yield s3.deleteObject(deleteParams).promise();
+                }
+            }
+            catch (error) {
+                console.error('Error handling image update:', error);
+                throw new Error('Failed to update image');
+            }
         }
         if (updates.length === 0) {
             console.log('No fields to update');
-            return getVacationById(id);
+            return currentVacation;
         }
         const q = `
-        UPDATE vacations
-        SET ${updates.join(', ')}
-        WHERE vacation_id = ?
+      UPDATE vacations
+      SET ${updates.join(', ')}
+      WHERE vacation_id = ?
     `;
         params.push(id);
         try {

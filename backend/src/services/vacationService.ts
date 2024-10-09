@@ -40,7 +40,7 @@ export async function createVacation(vacationData: Partial<VacationModel>, file?
   
     if (file) {
       const fileExtension = file.originalname.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExtension}`;
+      const fileName = `images/${uuidv4()}.${fileExtension}`;
   
       const uploadParams = {
         Bucket: process.env.AWS_S3_BUCKET_NAME,
@@ -51,7 +51,7 @@ export async function createVacation(vacationData: Partial<VacationModel>, file?
   
       try {
         await s3.putObject(uploadParams).promise();
-        imageUrl = `http://${process.env.AWS_S3_BUCKET_NAME}.s3-website-${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+        imageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileName}`; // Fixed URL generation
     } catch (error) {
         console.error('Error uploading file to S3:', error);
         throw new Error('Failed to upload image');
@@ -100,70 +100,101 @@ export async function deleteVacation(id: number): Promise<void> {
     }
 }
 
-export async function updateVacation(id: number, vacationData: Partial<VacationModel>): Promise<VacationModel> {
+export async function updateVacation(id: number, vacationData: Partial<VacationModel>, file?: Express.Multer.File): Promise<VacationModel> {
     console.log(`Attempting to update vacation with id: ${id}`);
     console.log('Update data received:', vacationData);
-
+  
+    // Fetch the current vacation data
+    const currentVacation = await getVacationById(id);
+    if (!currentVacation) {
+      throw new NotFoundError(`Vacation with id ${id} not found`);
+    }
+  
+    // Prepare update fields
     const updates: string[] = [];
     const params: any[] = [];
-
-    if (vacationData.destination !== undefined) {
-        updates.push('destination = ?');
-        params.push(vacationData.destination);
-    }
-    if (vacationData.description !== undefined) {
-        updates.push('description = ?');
-        params.push(vacationData.description);
-    }
-    if (vacationData.startDate !== undefined) {
-        updates.push('start_date = ?');
-        params.push(vacationData.startDate);
-    }
-    if (vacationData.endDate !== undefined) {
-        updates.push('end_date = ?');
-        params.push(vacationData.endDate);
-    }
-    if (vacationData.price !== undefined) {
-        updates.push('price = ?');
-        params.push(vacationData.price);
-    }
-    if (vacationData.imageUrl !== undefined) {
-        updates.push('image_url = ?');
-        params.push(vacationData.imageUrl);
+  
+    // Helper function to add update field
+    const addUpdateField = (field: keyof VacationModel, value: any) => {
+      if (value !== undefined) {
+        updates.push(`${field} = ?`);
+        params.push(value);
       }
-
-    if (updates.length === 0) {
-        console.log('No fields to update');
-        return getVacationById(id);
+    };
+  
+    // Add fields to update
+    addUpdateField('destination', vacationData.destination);
+    addUpdateField('description', vacationData.description);
+    addUpdateField('startDate', vacationData.startDate);
+    addUpdateField('endDate', vacationData.endDate);
+    addUpdateField('price', vacationData.price);
+  
+    // Handle image update
+    if (file) {
+      const fileExtension = file.originalname.split('.').pop();
+      const fileName = `images/${uuidv4()}.${fileExtension}`;
+  
+      const uploadParams = {
+        Bucket: process.env.AWS_S3_BUCKET_NAME as string,
+        Key: fileName,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      };
+  
+      try {
+        await s3.putObject(uploadParams).promise();
+        const newImageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileName}`;
+        
+        // Add image_filename to update fields
+        addUpdateField('imageUrl', newImageUrl);
+  
+        // Delete old image if it exists
+        if (currentVacation.imageUrl) {
+          const oldImageKey = currentVacation.imageUrl.split('.com/')[1];
+          const deleteParams = {
+            Bucket: process.env.AWS_S3_BUCKET_NAME as string,
+            Key: oldImageKey,
+          };
+          await s3.deleteObject(deleteParams).promise();
+        }
+      } catch (error) {
+        console.error('Error handling image update:', error);
+        throw new Error('Failed to update image');
+      }
     }
-
+  
+    if (updates.length === 0) {
+      console.log('No fields to update');
+      return currentVacation;
+    }
+  
     const q = `
-        UPDATE vacations
-        SET ${updates.join(', ')}
-        WHERE vacation_id = ?
+      UPDATE vacations
+      SET ${updates.join(', ')}
+      WHERE vacation_id = ?
     `;
     params.push(id);
-
+  
     try {
-        const result = await runQuery(q, params) as any;
-        console.log('Update operation result:', result);
-
-        if (result.affectedRows === 0) {
-            throw new NotFoundError(`Vacation with id ${id} not found`);
-        }
-
-        // Fetch the updated vacation
-        const updatedVacation = await getVacationById(id);
-        console.log(`Vacation with id ${id} updated successfully`);
-        return updatedVacation;
+      const result = await runQuery(q, params) as any;
+      console.log('Update operation result:', result);
+  
+      if (result.affectedRows === 0) {
+        throw new NotFoundError(`Vacation with id ${id} not found`);
+      }
+  
+      // Fetch the updated vacation
+      const updatedVacation = await getVacationById(id);
+      console.log(`Vacation with id ${id} updated successfully`);
+      return updatedVacation;
     } catch (error) {
-        console.error('Error updating vacation:', error);
-        if (error instanceof NotFoundError) {
-            throw error;
-        }
-        throw new Error(`Failed to update vacation: ${(error as Error).message}`);
+      console.error('Error updating vacation:', error);
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      throw new Error(`Failed to update vacation: ${(error as Error).message}`);
     }
-}
+  }
 export async function getVacationById(id: number): Promise<VacationModel> {
     console.log(`Fetching vacation with id: ${id}`);
 

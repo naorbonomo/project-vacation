@@ -21,7 +21,7 @@ export default class VacationModel {
         public startDate?: Date,
         public endDate?: Date,
         public price?: number,
-        public imageUrl?: string | null // Add this line
+        public imageUrl?: string
     ) {}
 
     private static validateSchema = Joi.object({

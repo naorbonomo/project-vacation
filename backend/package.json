@@ -7,7 +7,7 @@
         "start": "nodemon --exec ts-node src/server.ts",
         "dev": "nodemon --exec ts-node src/server.ts",
         "build": "tsc",
-        "postbuild": "scp -i ../my_keypair.pem -r ./dist ubuntu@54.172.43.149:/home/ubuntu/backend",
+        "postbuild": "scp -i ../my_keypair.pem -r ./dist/* ubuntu@54.172.43.149:/home/ubuntu/backend",
         "watch": "tsc -w",
         "test": "jest"
     },

@@ -7,8 +7,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const joi_1 = __importDefault(require("joi"));
 const exceptions_1 = require("./exceptions");
 class VacationModel {
-    constructor(id, destination, description, startDate, endDate, price, imageUrl // Add this line
-    ) {
+    constructor(id, destination, description, startDate, endDate, price, imageUrl) {
         this.id = id;
         this.destination = destination;
         this.description = description;
