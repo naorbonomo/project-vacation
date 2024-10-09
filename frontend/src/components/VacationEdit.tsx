@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import APP_CONFIG from '../utils/appconfig';  // Assuming there's a config file
+import APP_CONFIG from '../utils/appconfig';
 
 const VacationEdit: React.FC = () => {
   const [vacation, setVacation] = useState({
@@ -13,6 +13,7 @@ const VacationEdit: React.FC = () => {
   });
   const navigate = useNavigate();
   const [image, setImage] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const { id } = useParams();  // Get vacation ID from URL params
 
@@ -21,30 +22,24 @@ const VacationEdit: React.FC = () => {
     const fetchVacation = async () => {
       try {
         const response = await axios.get(`${APP_CONFIG.API_BASE_URL}/api/vacations/${id}`);
-  console.log(response.data.id);
+        const vacationData = response.data.id; // Access the nested data correctly
+        console.log('Fetched vacation data:', vacationData);
   
-        // const startDate = response.data.id.startDate ;
-        // const endDate = response.data.id.endDate;
-        const vacation = response.data.id;
-        console.log(`this is the date` + vacation.startDate);
-
         setVacation({
-          destination: vacation.destination,
-          description: vacation.description,
-          startDate: vacation.startDate.split('T')[0],
-          endDate: vacation.endDate,
-          price: vacation.price,
+          destination: vacationData.destination,
+          description: vacationData.description,
+          startDate: vacationData.start_date.split('T')[0], // Format date for input fields
+          endDate: vacationData.end_date.split('T')[0],
+          price: vacationData.price.toString(),
         });
-        
       } catch (error) {
         console.error('Error fetching vacation data', error);
-        alert('Failed to load vacation details. Please try again later.');
+        setError('Failed to load vacation details. Please try again later.');
       }
     };
   
     fetchVacation();
   }, [id]);
-  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -57,8 +52,30 @@ const VacationEdit: React.FC = () => {
     }
   };
 
+  const validateForm = (): boolean => {
+    // Ensure end date is later than start date
+    if (vacation.endDate <= vacation.startDate) {
+      setError('End date must be later than the start date.');
+      return false;
+    }
+
+    // Ensure price is a positive number and does not exceed 10,000
+    const price = parseFloat(vacation.price);
+    if (isNaN(price) || price < 0 || price > 10000) {
+      setError('Price must be a positive number between 0 and 10,000.');
+      return false;
+    }
+
+    setError(null);
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+  
+    if (!validateForm()) {
+      return; // Stop submission if validation fails
+    }
 
     const formData = new FormData();
     formData.append('destination', vacation.destination);
@@ -66,8 +83,16 @@ const VacationEdit: React.FC = () => {
     formData.append('startDate', vacation.startDate);
     formData.append('endDate', vacation.endDate);
     formData.append('price', vacation.price);
-
-
+    if (image) {
+      formData.append('image', image);
+    }
+  
+    // Log each value to ensure they are set correctly
+    console.log('Form data entries:');
+    formData.forEach((value, key) => {
+      console.log(`${key}: ${value}`);
+    });
+  
     try {
       await axios.put(`${APP_CONFIG.API_BASE_URL}/api/vacations/${id}`, formData);
       alert('Vacation updated successfully');
@@ -81,6 +106,7 @@ const VacationEdit: React.FC = () => {
   return (
     <div>
       <h1>Edit Vacation</h1>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
       <form onSubmit={handleSubmit}>
         <div>
           <label>Destination:</label>

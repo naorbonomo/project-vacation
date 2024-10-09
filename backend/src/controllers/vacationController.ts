@@ -43,8 +43,8 @@ vacationRouter.post(
           destination,
           description,
           price: price ? parseFloat(price) : undefined,
-          startDate: startDate ? new Date(startDate) : undefined,
-          endDate: endDate ? new Date(endDate) : undefined,
+          start_date: startDate ? new Date(startDate) : undefined,
+          end_date: endDate ? new Date(endDate) : undefined,
         }, req.file);
   
         res.status(201).json({ message: 'Vacation created successfully', vacation });
@@ -60,67 +60,62 @@ vacationRouter.post(
   );
 
 // delete a vacation
+// Delete a vacation
 vacationRouter.delete(
     appConfig.routePrefix + "/vacations/:id", 
-    // verifyTokenAdminMW
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: Request, res: Response) => {
         try {
             const id = parseInt(req.params.id, 10);
             
             if (isNaN(id)) {
-                return res.status(400).json({ message: 'Invalid vacation ID' });
+                console.error('Invalid vacation ID:', req.params.id);
+                return res.status(StatusCode.BadRequest).json({ message: 'Invalid vacation ID' });
             }
 
+            console.log(`Deleting vacation with ID: ${id}`);
             await deleteVacation(id);
             res.status(StatusCode.NoContent).send();
         } catch (error) {
             console.error('Error deleting vacation:', error);
             if (error instanceof NotFoundError) {
-                res.status(404).json({ message: error.message });
+                res.status(StatusCode.NotFound).json({ message: error.message });
             } else {
-                res.status(StatusCode.ServerError).json({ message: 'Error deleting vacation', error: (error as Error).message });
+                res.status(StatusCode.ServerError).json({ message: 'Error deleting vacation', error: error });
             }
         }
     }
 );
+
 
 // update a vacation
 vacationRouter.put(
-    appConfig.routePrefix + "/vacations/:id",
+    '/api/vacations/:id',
     upload.single('image'),
-    async (req: Request, res: Response, next: NextFunction) => {
-    try {
+    async (req: Request, res: Response) => {
+      try {
         const id = parseInt(req.params.id, 10);
-        
         if (isNaN(id)) {
-            return res.status(400).json({ message: 'Invalid vacation ID' });
+          return res.status(400).json({ message: 'Invalid vacation ID' });
         }
-
+  
         console.log('Received update data:', req.body);
         console.log('Received file:', req.file);
-
+  
         const updatedVacation = await updateVacation(id, {
-            destination: req.body.destination,
-            description: req.body.description,
-            price: req.body.price ? parseFloat(req.body.price) : undefined,
-            startDate: req.body.startDate ? new Date(req.body.startDate) : undefined,
-            endDate: req.body.endDate ? new Date(req.body.endDate) : undefined,
-            imageUrl: req.file ? req.file.filename : undefined
-        });
-
+          destination: req.body.destination,
+          description: req.body.description,
+          start_date: req.body.startDate,
+          end_date: req.body.endDate,
+          price: parseFloat(req.body.price),
+        }, req.file);
+  
         res.status(StatusCode.Ok).json(updatedVacation);
-    } catch (error) {
-            console.error('Error updating vacation:', error);
-            if (error instanceof NotFoundError) {
-                res.status(404).json({ message: error.message });
-            } else if (error instanceof ValidationError) {
-                res.status(400).json({ message: error.message });
-            } else {
-                res.status(StatusCode.ServerError).json({ message: 'Error updating vacation', error: (error as Error).message });
-            }
-        }
+      } catch (error) {
+        console.error('Error updating vacation:', error);
+        res.status(StatusCode.ServerError).json({ message: 'Error updating vacation', error: error });
+      }
     }
-);
+  );
 
 // get a vacation by ID
 vacationRouter.get(

@@ -28,12 +28,12 @@ export async function getAllVacations(): Promise<VacationModel[]> {
 export async function createVacation(vacationData: Partial<VacationModel>, file?: Express.Multer.File): Promise<VacationModel> {
     console.log('Received vacation data:', vacationData);
   
-    const { destination, description, startDate, endDate, price } = vacationData;
+    const { destination, description, start_date, end_date, price } = vacationData;
   
     if (!destination) throw new ValidationError('Missing required field: destination');
     if (!description) throw new ValidationError('Missing required field: description');
-    if (!startDate) throw new ValidationError('Missing required field: startDate');
-    if (!endDate) throw new ValidationError('Missing required field: endDate');
+    if (!start_date) throw new ValidationError('Missing required field: startDate');
+    if (!end_date) throw new ValidationError('Missing required field: endDate');
     if (!price) throw new ValidationError('Missing required field: price');
   
     let imageUrl = '';
@@ -64,7 +64,7 @@ export async function createVacation(vacationData: Partial<VacationModel>, file?
       INSERT INTO vacations (destination, description, start_date, end_date, price, image_filename)
       VALUES (?, ?, ?, ?, ?, ?)
     `;
-    const params = [destination, description, startDate, endDate, price, imageUrl];
+    const params = [destination, description, start_date, end_date, price, imageUrl];
   
     try {
       const result = await runQuery(q, params) as any;
@@ -79,6 +79,17 @@ export async function createVacation(vacationData: Partial<VacationModel>, file?
 export async function deleteVacation(id: number): Promise<void> {
     console.log(`Attempting to delete vacation with id: ${id}`);
 
+    // Delete related followers first
+    const deleteFollowersQuery = 'DELETE FROM followers WHERE vacation_id = ?';
+    try {
+        await runQuery(deleteFollowersQuery, [id]);
+        console.log(`Deleted followers related to vacation_id: ${id}`);
+    } catch (error) {
+        console.error('Error deleting related followers:', error);
+        throw new Error('Failed to delete related followers before deleting vacation');
+    }
+
+    // Now delete the vacation itself
     const q = 'DELETE FROM vacations WHERE vacation_id = ?';
     const params = [id];
 
@@ -90,15 +101,14 @@ export async function deleteVacation(id: number): Promise<void> {
             throw new NotFoundError(`Vacation with id ${id} not found`);
         }
 
-        console.log(`Vacation with id ${id} deleted successfully`);
+        console.log(`Vacation with id ${id} deleted successfully.`);
     } catch (error) {
-        console.error('Error deleting vacation:', error);
-        if (error instanceof NotFoundError) {
-            throw error;
-        }
+        console.error('Error during deletion in deleteVacation:', error);
         throw new Error(`Failed to delete vacation: ${(error as Error).message}`);
     }
 }
+
+
 
 export async function updateVacation(id: number, vacationData: Partial<VacationModel>, file?: Express.Multer.File): Promise<VacationModel> {
     console.log(`Attempting to update vacation with id: ${id}`);
@@ -125,8 +135,8 @@ export async function updateVacation(id: number, vacationData: Partial<VacationM
     // Add fields to update
     addUpdateField('destination', vacationData.destination);
     addUpdateField('description', vacationData.description);
-    addUpdateField('startDate', vacationData.startDate);
-    addUpdateField('endDate', vacationData.endDate);
+    addUpdateField('start_date', vacationData.start_date);
+    addUpdateField('end_date', vacationData.end_date);
     addUpdateField('price', vacationData.price);
   
     // Handle image update

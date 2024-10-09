@@ -5,10 +5,10 @@ import { ValidationError } from "./exceptions";
 
 interface VacationInterface {
     id?: number;
-    title: string;
+    destination: string;
     description: string;
-    startDate: Date;
-    endDate: Date;
+    start_date: Date; // Matches the database field
+    end_date: Date;   // Matches the database field
     price: number;
     imageUrl: string;
 }
@@ -18,26 +18,26 @@ export default class VacationModel {
         public id?: number,
         public destination?: string,
         public description?: string,
-        public startDate?: Date,
-        public endDate?: Date,
+        public start_date?: Date, // Matches the database field
+        public end_date?: Date,   // Matches the database field
         public price?: number,
         public imageUrl?: string
     ) {}
 
     private static validateSchema = Joi.object({
         id: Joi.number().optional().positive(),
-        title: Joi.string().required().min(2).max(100),
+        destination: Joi.string().required().min(2).max(100),
         description: Joi.string().required().min(10).max(1000),
-        startDate: Joi.date().required(),
-        endDate: Joi.date().required().min(Joi.ref('startDate')),
+        start_date: Joi.date().required(), // Adjusted to match the property name
+        end_date: Joi.date().required().min(Joi.ref('start_date')), // Adjusted to match the property name
         price: Joi.number().required().positive(),
-        imageUrl: Joi.string().required().uri(),
-    })
+        imageUrl: Joi.string().optional().uri(),
+    });
 
     validate(): void {
-        const res = VacationModel.validateSchema.validate(this)
+        const res = VacationModel.validateSchema.validate(this);
         if (res.error) {
-            throw new ValidationError(res.error.details[0].message)
+            throw new ValidationError(res.error.details[0].message);
         }
     }
 }
