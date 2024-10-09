@@ -31,24 +31,25 @@ const App: React.FC = () => {
       <div>
         <CityAnimation /> {/* Add CityAnimation at the top of the page */}
         <nav>
-          <ul>
-            <li><Link to="/">Home</Link></li>
-            {!user ? (
-              <>
-                <li><Link to="/login">Login</Link></li>
-                <li><Link to="/register">Register</Link></li>
-                <li><Link to="/vacation-form">Add Vacation</Link></li> 
-              </>
-            ) : (
-              <>
-                <li>Hello, {user.first_name}</li>
-                <li><button onClick={logout}>Logout</button></li>
-              </>
-            )}
-          </ul>
-        </nav>
-        <Routes>
-          <Route path="/" element={isAuthenticated ? <VacationList /> : <div>Please log in to see vacations.</div>} />
+  <ul>
+    <li><Link to="/">Home</Link></li>
+    {!user ? (
+      <>
+        <li><Link to="/login">Login</Link></li>
+        <li><Link to="/register">Register</Link></li>
+      </>
+    ) : (
+      <>
+        <li>Hello, {user.first_name}</li>
+        {user.role === 'Admin' && <li><Link to="/vacation-form">Add Vacation</Link></li>}
+        <li><button onClick={logout}>Logout</button></li>
+      </>
+    )}
+  </ul>
+</nav>
+
+        <Routes> 
+          <Route path="/" element={isAuthenticated ? <VacationList user={user}/> : <div>Please log in to see vacations.</div>} />  
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/vacation-form" element={<VacationForm />} /> 

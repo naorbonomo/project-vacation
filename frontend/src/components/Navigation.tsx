@@ -1,5 +1,3 @@
-// backend/src/components/ProtectedRoute.tsx
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { User } from '../types';
@@ -18,7 +16,9 @@ const Navigation: React.FC<NavigationProps> = ({ isAuthenticated, user, onLogout
         {isAuthenticated && user ? (
           <>
             <li>Hello, {user.name}</li>
-            {user.role === 'Admin' && <li><Link to="/add-vacation">Add Vacation</Link></li>}
+            {user.role === 'Admin' && (
+              <li><Link to="/vacation-form">Add Vacation</Link></li>
+            )}
             <li><button onClick={onLogout}>Logout</button></li>
           </>
         ) : (

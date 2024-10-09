@@ -1,7 +1,7 @@
 // frontend/src/components/VacationList.tsx
 import React, { useEffect, useState } from 'react';
 import axios, { AxiosResponse } from 'axios';
-import { useNavigate } from 'react-router-dom'; // for navigation
+import { useNavigate } from 'react-router-dom';
 import './VacationList.css';
 import APP_CONFIG from '../utils/appconfig';
 
@@ -20,7 +20,7 @@ interface Vacation {
 
 type ApiResponse = Vacation[];
 
-const VacationList: React.FC = () => {
+const VacationList: React.FC<{ user: any }> = ({ user }) => {
     const [vacations, setVacations] = useState<Vacation[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -62,7 +62,6 @@ const VacationList: React.FC = () => {
         navigate(`/vacation-edit/${id}`);
     };
 
-
     if (isLoading) {
         return <div>Loading vacations...</div>;
     }
@@ -90,14 +89,18 @@ const VacationList: React.FC = () => {
                             <p>Start Date: {new Date(vacation.id.start_date).toLocaleDateString()}</p>
                             <p>End Date: {new Date(vacation.id.end_date).toLocaleDateString()}</p>
                             <p>Price: ${parseFloat(vacation.id.price).toFixed(2)}</p>
-                            <button onClick={() => handleEdit(vacation.id.vacation_id)}>Edit</button>
-                            <button onClick={() => handleDelete(vacation.id.vacation_id)}>Delete</button>
+                            {user.role === 'Admin' && (
+                                <>
+                                    <button onClick={() => handleEdit(vacation.id.vacation_id)}>Edit</button>
+                                    <button onClick={() => handleDelete(vacation.id.vacation_id)}>Delete</button>
+                                </>
+                            )}
                         </div>
                     ))}
                 </div>
             )}
         </div>
     );
-}
+};
 
 export default VacationList;

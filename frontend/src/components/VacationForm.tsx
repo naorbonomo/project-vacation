@@ -1,4 +1,3 @@
-// frontend/src/components/VacationForm.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -14,6 +13,7 @@ const VacationForm: React.FC = () => {
   });
   const [file, setFile] = useState<File | null>(null);
   const [isEdit, setIsEdit] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -39,6 +39,29 @@ const VacationForm: React.FC = () => {
     setVacation({ ...vacation, [name]: value });
   };
 
+  const validateForm = () => {
+    const today = new Date().toISOString().split('T')[0];
+
+    if (vacation.startDate < today) {
+      setError('Start date must be a future date.');
+      return false;
+    }
+
+    if (vacation.endDate <= vacation.startDate) {
+      setError('End date must be later than start date.');
+      return false;
+    }
+
+    const price = parseFloat(vacation.price);
+    if (isNaN(price) || price < 0 || price > 10000) {
+      setError('Price must be between 0 and 10,000.');
+      return false;
+    }
+
+    setError(null);
+    return true;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFile(e.target.files[0]);
@@ -47,6 +70,10 @@ const VacationForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
 
     const formData = new FormData();
     formData.append('destination', vacation.destination);
@@ -74,6 +101,7 @@ const VacationForm: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit}>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
       <div>
         <label>Destination:</label>
         <input type="text" name="destination" value={vacation.destination} onChange={handleInputChange} required />
@@ -92,7 +120,7 @@ const VacationForm: React.FC = () => {
       </div>
       <div>
         <label>Price:</label>
-        <input type="text" name="price" value={vacation.price} onChange={handleInputChange} required />
+        <input type="number" name="price" value={vacation.price} onChange={handleInputChange} required />
       </div>
       <div>
         <label>Image:</label>
