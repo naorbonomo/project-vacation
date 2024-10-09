@@ -243,7 +243,7 @@ export async function getVacationsWithFollowers(): Promise<VacationModel[]> {
     console.log('Query result:', res);
     return res.map((v: any) => {
         const vacation = new VacationModel(v);
-        vacation.imageUrl = v.image_filename ? `http://localhost:${appConfig.port}/images/${v.image_filename}` : '';
+        vacation.imageUrl = v.image_filename ? `http://localhost:${appConfig.port}/images/${v.image_filename}` : '';// do i need it here?
         vacation.followersCount = v.followersCount; // Include followers count
         return vacation;
     });

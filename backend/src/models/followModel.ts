@@ -4,22 +4,22 @@ import Joi from "joi";
 import { ValidationError } from "./exceptions";
 
 interface FollowInterface {
-    userId: number;
-    vacationId: number;
+    user_id: number;
+    vacation_id: number;
 }
 
 export default class FollowModel {
-    userId: number;
-    vacationId: number;
+    user_id: number;
+    vacation_id: number;
 
     constructor(follow: FollowInterface) {
-        this.userId = follow.userId;
-        this.vacationId = follow.vacationId;
+        this.user_id = follow.user_id;
+        this.vacation_id = follow.vacation_id;
     }
 
     private static validateSchema = Joi.object({
-        userId: Joi.number().required().positive(),
-        vacationId: Joi.number().required().positive(),
+        user_id: Joi.number().required().positive(),
+        vacation_id: Joi.number().required().positive(),
     })
 
     validate(): void {

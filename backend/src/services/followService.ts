@@ -6,14 +6,14 @@ export class FollowService {
     async followVacation(followData: FollowModel): Promise<void> {
         await runQuery(
             'INSERT INTO followers (user_id, vacation_id) VALUES (?, ?)',
-            [followData.userId, followData.vacationId]
+            [followData.user_id, followData.vacation_id]
         );
     }
 
     async unfollowVacation(followData: FollowModel): Promise<void> {
         await runQuery(
             'DELETE FROM followers WHERE user_id = ? AND vacation_id = ?',
-            [followData.userId, followData.vacationId]
+            [followData.user_id, followData.vacation_id]
         );
     }
 

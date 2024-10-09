@@ -49,10 +49,10 @@ followRouter.post(appConfig.routePrefix + "/unfollow", async (req: Request, res:
 followRouter.get(appConfig.routePrefix + "/followed-vacations/:userId", async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { userId } = req.params;
-        const followData = new FollowModel({ userId: parseInt(userId, 10), vacationId: 0 }); // Vacation ID is irrelevant here
+        const followData = new FollowModel({ user_id: parseInt(userId, 10), vacation_id: 0 }); // Vacation ID is irrelevant here
         followData.validate(); // Validate the userId
 
-        const followedVacations = await followService.getFollowedVacations(followData.userId);
+        const followedVacations = await followService.getFollowedVacations(followData.user_id);
         res.status(StatusCode.Ok).json(followedVacations);
     } catch (error) {
         if (error instanceof ValidationError) {
