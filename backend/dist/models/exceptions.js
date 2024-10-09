@@ -1,4 +1,5 @@
 "use strict";
+// backend/models/exceptions.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UnauthorizedError = exports.UnknownError = exports.NotFoundError = exports.ValidationError = exports.AppExcption = void 0;
 const statusEnum_1 = require("./statusEnum");

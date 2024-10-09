@@ -38,8 +38,8 @@ export class UserService {
       console.log('User inserted successfully:', result);
       return new UserModel({
         id: result.insertId,
-        firstName, // Changed from first_name to firstName
-        lastName,  // Changed from last_name to lastName
+        first_name: result.firstName, // Changed from first_name to firstName
+        last_name: result.lastName,
         email,
         role: 'Regular User',
         isAdmin: false,

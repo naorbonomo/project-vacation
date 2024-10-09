@@ -1,4 +1,5 @@
 "use strict";
+// backend/src/middleware/doormanMiddleware.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.doorman = doorman;
 const appConfig_1 = require("../utils/appConfig");

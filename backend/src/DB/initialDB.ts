@@ -52,7 +52,7 @@ const createSampleData = async () => {
     await runQuery(Q);
 
     // Insert sample vacations
-   let Q = `
+   Q = `
     INSERT INTO vacations (destination, description, start_date, end_date, price, image_filename) VALUES
     ('Paris', 'City of Love', '2023-06-01', '2023-06-07', 1200.00, 'paris.jpg'),
     ('Tokyo', 'Modern meets traditional', '2023-07-15', '2023-07-22', 1800.00, 'tokyo.jpg'),
@@ -79,9 +79,10 @@ const createSampleData = async () => {
 };
 
 // create tables and add sample data
-// createTables().then(() => {
-//     console.log("Done creating tables");
-//     createSampleData().then(() => {
-//         console.log("Done adding sample data");
-//     });
-// });
+
+createTables().then(() => {
+    console.log("Done creating tables");
+    createSampleData().then(() => {
+        console.log("Done adding sample data");
+    });
+});

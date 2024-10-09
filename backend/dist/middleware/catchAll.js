@@ -1,4 +1,5 @@
 "use strict";
+// backend/src/middleware/catchAll.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 const exceptions_1 = require("../models/exceptions");
 const statusEnum_1 = require("../models/statusEnum");

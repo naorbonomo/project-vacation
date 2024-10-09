@@ -4,8 +4,13 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 console.log("DB Environment Variables Loaded: ", process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_PORT);
+console.log("DB_USER:", process.env.DB_USER);
+console.log("DB_PASSWORD:", process.env.DB_PASSWORD);
+console.log("DB_PORT:", process.env.DB_PORT);
+console.log("DB_HOST:", process.env.DB_HOST);
+console.log("DB_NAME:", process.env.DB_NAME);
 
 interface DbConfig {
     user: string;
@@ -23,8 +28,8 @@ class BaseAppConfig {
     readonly jwtSecrete = process.env.JWT_SECRET || 'jwt_secret-key-or-whatever@#$%';
 
     readonly dbConfig: DbConfig = {
-        user: process.env.DB_USER || 'my_user',  // Ensure DB_USER is loaded
-        password: process.env.DB_PASSWORD || '',  // Ensure DB_PASSWORD is loaded and handle empty
+        user: process.env.DB_USER as string,   // Ensure DB_USER is loaded
+        password: process.env.DB_PASSWORD as string,  // Ensure DB_PASSWORD is loaded and handle empty
     };
     readonly s3Config = {
         region: process.env.AWS_REGION || 'us-east-1',
@@ -35,25 +40,38 @@ class BaseAppConfig {
 }
 
 class DevAppConfig extends BaseAppConfig {
-    readonly port = 5000;
+    readonly port = process.env.PORT || 5000;
     readonly dbConfig: DbConfig = {
         ...this.dbConfig,
-        host: process.env.DB_HOST || 'localhost',
-        port: Number(process.env.DB_PORT) || 3306,
-        database: process.env.DB_NAME || 'project_vacation',
+        host: 'localhost', // Updated to run locally on XAMPP
+        user: "root", 
+        password: "",  // Ensure DB_USER is loaded
+        port: Number(process.env.DB_PORT),
+        database: process.env.DB_NAME,
     };
 }
 
 class ProdAppConfig extends BaseAppConfig {
-    readonly port = 5000;
+    readonly port = process.env.PORT || 5000;
     readonly dbConfig: DbConfig = {
         ...this.dbConfig,
-        host: 'localhost', // Production host
-        port: 3306,
-        database: 'project_vacation', // Production database
+        host: process.env.DB_HOST ,
+        port: Number(process.env.DB_PORT),
+        database: process.env.DB_NAME,
     };
 }
 
-export const appConfig = process.env.NODE_ENV === "production"
-    ? new ProdAppConfig()
-    : new DevAppConfig();
+
+
+export const appConfig = (() => {
+    switch (process.env.NODE_ENV) {
+        case "production":
+            console.log(`ENV IS : ${process.env.NODE_ENV}`)
+            return new ProdAppConfig();
+            case "development":
+                console.log(`ENV IS : ${process.env.NODE_ENV}`)
+                return new DevAppConfig();
+        default:
+            throw new Error(`Unknown NODE_ENV: ${process.env.NODE_ENV}`);
+    }
+})();

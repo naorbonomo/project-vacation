@@ -1,9 +1,9 @@
 import express from 'express';
-import { vacationRouter } from '../src/controllers/vacationController';
+import { vacationRouter } from '../controllers/vacationController';
 import request from 'supertest';
-import { appConfig } from '../src/utils/appConfig';
-import { StatusCode } from '../src/models/statusEnum';
-import { closeDB } from '../src/DB/dal';
+import { appConfig } from '../utils/appConfig';
+import { StatusCode } from '../models/statusEnum';
+import { closeDB } from '../DB/dal';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';

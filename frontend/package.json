@@ -27,6 +27,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "postbuild": "aws s3 sync ./build s3://project-vacation --delete",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

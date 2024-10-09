@@ -27,12 +27,13 @@ server.use('/images', express.static(path.join(__dirname, '../uploads'))); // Se
 server.use("/", vacationRouter);
 server.use("/", authRoutes)
 server.use(catchAll);
-console.log(`Listening on http://localhost:${appConfig.port}`);
+// console.log(`Listening on http://localhost:${appConfig.port}`);
 
 isDbServerUp().then((isUp) => { // run server only if DB-server is active
     if (isUp) {
         server.listen(appConfig.port, () => {
         })
-        console.log(`Listening on http://localhost:${appConfig.port}`);
+        console.log(`Listening on ${appConfig.dbConfig.host}:${appConfig.port}`);
     } else {console.error("\n\n****\nDB server is not up!!!\n****\n");}
 })
+ 

@@ -1,21 +1,32 @@
 "use strict";
+// backend/src/DB/initialDB.ts
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const dal_1 = __importDefault(require("./dal"));
-const createTables = async () => {
+const createTables = () => __awaiter(void 0, void 0, void 0, function* () {
     let Q = `
         CREATE TABLE IF NOT EXISTS users (
             user_id INT AUTO_INCREMENT PRIMARY KEY,
             first_name VARCHAR(50) NOT NULL,
             last_name VARCHAR(50) NOT NULL,
             email VARCHAR(100) NOT NULL UNIQUE,
-            password VARCHAR(255) NOT NULL,
-            role ENUM('Regular User', 'Admin') NOT NULL
+            password VARCHAR(255) NOT NULL CHECK (CHAR_LENGTH(password) >= 4),
+            role ENUM('Regular User', 'Admin') NOT NULL DEFAULT 'Regular User',
+            token VARCHAR(255)
         );
     `;
-    await (0, dal_1.default)(Q);
+    yield (0, dal_1.default)(Q);
     Q = `
         CREATE TABLE IF NOT EXISTS vacations (
             vacation_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -27,7 +38,7 @@ const createTables = async () => {
             image_filename VARCHAR(255) NOT NULL
         );
     `;
-    await (0, dal_1.default)(Q);
+    yield (0, dal_1.default)(Q);
     Q = `
         CREATE TABLE IF NOT EXISTS followers (
             user_id INT NOT NULL,
@@ -37,19 +48,19 @@ const createTables = async () => {
             FOREIGN KEY (vacation_id) REFERENCES vacations(vacation_id)
         );
     `;
-    await (0, dal_1.default)(Q);
-};
-const createSampleData = async () => {
+    yield (0, dal_1.default)(Q);
+});
+const createSampleData = () => __awaiter(void 0, void 0, void 0, function* () {
     // Insert sample users
-    // let Q = `
-    //     INSERT INTO users (first_name, last_name, email, password, role) VALUES
-    //     ('John', 'Doe', 'john@example.com', 'password123', 'Regular User'),
-    //     ('Jane', 'Smith', 'jane@example.com', 'password456', 'Regular User'),
-    //     ('Admin', 'User', 'admin@example.com', 'adminpass', 'Admin');
-    // `;
-    // await runQuery(Q);
-    // Insert sample vacations
     let Q = `
+        INSERT INTO users (first_name, last_name, email, password, role) VALUES
+        ('John', 'Doe', 'john@example.com', 'password123', 'Regular User'),
+        ('Jane', 'Smith', 'jane@example.com', 'password456', 'Regular User'),
+        ('Admin', 'User', 'admin@example.com', 'adminpass', 'Admin');
+    `;
+    yield (0, dal_1.default)(Q);
+    // Insert sample vacations
+    Q = `
     INSERT INTO vacations (destination, description, start_date, end_date, price, image_filename) VALUES
     ('Paris', 'City of Love', '2023-06-01', '2023-06-07', 1200.00, 'paris.jpg'),
     ('Tokyo', 'Modern meets traditional', '2023-07-15', '2023-07-22', 1800.00, 'tokyo.jpg'),
@@ -64,19 +75,19 @@ const createSampleData = async () => {
     ('Rio de Janeiro', 'Carnival City', '2024-04-10', '2024-04-17', 1900.00, 'rio.jpg'),
     ('Machu Picchu', 'Ancient Inca City', '2024-05-05', '2024-05-12', 2100.00, 'machupicchu.jpg')
 `;
-    await (0, dal_1.default)(Q);
+    yield (0, dal_1.default)(Q);
     // Insert sample followers
     Q = `
         INSERT INTO followers (user_id, vacation_id) VALUES
         (1, 1), (1, 3), (1, 5),
         (2, 2), (2, 4), (2, 6);
     `;
-    await (0, dal_1.default)(Q);
-};
+    yield (0, dal_1.default)(Q);
+});
 // create tables and add sample data
-// createTables().then(() => {
-//     console.log("Done creating tables");
-//     createSampleData().then(() => {
-//         console.log("Done adding sample data");
-//     });
-// });
+createTables().then(() => {
+    console.log("Done creating tables");
+    createSampleData().then(() => {
+        console.log("Done adding sample data");
+    });
+});
