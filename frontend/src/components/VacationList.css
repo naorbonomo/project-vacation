@@ -101,3 +101,76 @@ button:hover {
     font-size: 1rem;
     color: #333;
 }
+/* Add these to your VacationList.css file */
+
+.filter-options {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.filter-options label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.vacation-details {
+    padding: 15px;
+}
+
+.description {
+    font-style: italic;
+    color: #555;
+}
+
+.price {
+    font-weight: bold;
+    color: #28a745;
+}
+
+.followers {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.admin-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.delete {
+    background-color: #dc3545;
+}
+
+.delete:hover {
+    background-color: #c82333;
+}
+
+.follow, .unfollow {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.unfollow {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.unfollow:hover {
+    background-color: #e0a800;
+}
+
+.loading, .error, .no-vacations {
+    text-align: center;
+    margin-top: 50px;
+    font-size: 1.2rem;
+    color: #555;
+}
+
+.error {
+    color: #dc3545;
+}

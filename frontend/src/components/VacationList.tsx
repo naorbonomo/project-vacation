@@ -32,6 +32,10 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
     const itemsPerPage = 3;
     const navigate = useNavigate();
 
+    const [showOnlyFollowed, setShowOnlyFollowed] = useState<boolean>(false);
+    const [showOnlyFuture, setShowOnlyFuture] = useState<boolean>(false);
+    const [showOnlyActive, setShowOnlyActive] = useState<boolean>(false);
+
     useEffect(() => {
         const fetchVacations = async () => {
             setIsLoading(true);
@@ -55,7 +59,6 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
         const fetchFollowedVacations = async () => {
             try {
                 const followedVacationIds = await getFollowedVacationsByUser(user.id);
-                console.log('Followed Vacations:', followedVacationIds);
                 setFollowedVacations(followedVacationIds);
             } catch (error) {
                 console.error('Error fetching followed vacations:', error);
@@ -114,10 +117,29 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
         navigate(`/vacation-edit/${id}`);
     };
 
-    // Pagination logic
-    const totalPages = Math.ceil(vacations.length / itemsPerPage);
+    const filteredVacations = vacations.filter(vacation => {
+        const startDate = new Date(vacation.id.start_date);
+        const endDate = new Date(vacation.id.end_date);
+        const now = new Date();
+
+        if (showOnlyFollowed && user.role !== 'Admin' && !followedVacations.includes(vacation.id.vacation_id)) {
+            return false;
+        }
+
+        if (showOnlyFuture && startDate <= now) {
+            return false;
+        }
+
+        if (showOnlyActive && (endDate < now || startDate > now)) {
+            return false;
+        }
+
+        return true;
+    });
+
+    const totalPages = Math.ceil(filteredVacations.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const currentVacations = vacations.slice(startIndex, startIndex + itemsPerPage);
+    const currentVacations = filteredVacations.slice(startIndex, startIndex + itemsPerPage);
 
     const handlePreviousPage = () => {
         setCurrentPage(prev => Math.max(prev - 1, 1));
@@ -128,18 +150,46 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
     };
 
     if (isLoading) {
-        return <div>Loading vacations...</div>;
+        return <div className="loading">Loading vacations...</div>;
     }
 
     if (error) {
-        return <div>Error: {error}</div>;
+        return <div className="error">Error: {error}</div>;
     }
 
     return (
         <div className="vacation-list">
             <h1>Vacation List</h1>
-            {vacations.length === 0 ? (
-                <p>No vacations available at the moment.</p>
+            <div className="filter-options">
+                {user.role !== 'Admin' && (
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={showOnlyFollowed}
+                            onChange={(e) => setShowOnlyFollowed(e.target.checked)}
+                        />
+                        Show only vacations I follow
+                    </label>
+                )}
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={showOnlyFuture}
+                        onChange={(e) => setShowOnlyFuture(e.target.checked)}
+                    />
+                    Show only future vacations
+                </label>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={showOnlyActive}
+                        onChange={(e) => setShowOnlyActive(e.target.checked)}
+                    />
+                    Show only active vacations
+                </label>
+            </div>
+            {filteredVacations.length === 0 ? (
+                <p className="no-vacations">No vacations available based on your filters.</p>
             ) : (
                 <>
                     <div className="vacation-grid">
@@ -150,29 +200,32 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                                     alt={vacation.id.destination}
                                     className="vacation-image"
                                 />
-                                <h2>{vacation.id.destination}</h2>
-                                <p>{vacation.id.description}</p>
-                                <p>Start Date: {new Date(vacation.id.start_date).toLocaleDateString()}</p>
-                                <p>End Date: {new Date(vacation.id.end_date).toLocaleDateString()}</p>
-                                <p>Price: ${parseFloat(vacation.id.price).toFixed(2)}</p>
-                                <p>Followers: {vacation.followersCount}</p>
-                                {user.role === 'Admin' && (
-                                    <>
-                                        <button onClick={() => handleEdit(vacation.id.vacation_id)}>Edit</button>
-                                        <button onClick={() => handleDelete(vacation.id.vacation_id)}>Delete</button>
-                                    </>
-                                )}
-                                {user.role !== 'Admin' && (
-                                    followedVacations.includes(vacation.id.vacation_id) ? (
-                                        <button onClick={() => handleUnfollow(vacation.id.vacation_id)}>Unfollow</button>
+                                <div className="vacation-details">
+                                    <h2>{vacation.id.destination}</h2>
+                                    <p className="description">{vacation.id.description}</p>
+                                    <p>Start Date: {new Date(vacation.id.start_date).toLocaleDateString()}</p>
+                                    <p>End Date: {new Date(vacation.id.end_date).toLocaleDateString()}</p>
+                                    <p className="price">Price: ${parseFloat(vacation.id.price).toFixed(2)}</p>
+                                    <p className="followers">Followers: {vacation.followersCount}</p>
+                                    {user.role === 'Admin' ? (
+                                        <div className="admin-actions">
+                                            <button onClick={() => handleEdit(vacation.id.vacation_id)}>Edit</button>
+                                            <button onClick={() => handleDelete(vacation.id.vacation_id)} className="delete">Delete</button>
+                                        </div>
                                     ) : (
-                                        <button onClick={() => handleFollow(vacation.id.vacation_id)}>Follow</button>
-                                    )
-                                )}
+                                        <button
+                                            onClick={() => followedVacations.includes(vacation.id.vacation_id) 
+                                                ? handleUnfollow(vacation.id.vacation_id) 
+                                                : handleFollow(vacation.id.vacation_id)}
+                                            className={followedVacations.includes(vacation.id.vacation_id) ? 'unfollow' : 'follow'}
+                                        >
+                                            {followedVacations.includes(vacation.id.vacation_id) ? 'Unfollow' : 'Follow'}
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>
-                    {/* Pagination controls */}
                     <div className="pagination-controls">
                         <button 
                             onClick={handlePreviousPage} 
