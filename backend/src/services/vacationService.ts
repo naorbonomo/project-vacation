@@ -17,7 +17,7 @@ export async function getAllVacations(): Promise<VacationModel[]> {
     const q = 'SELECT * FROM vacations ORDER BY start_date ASC';
     const res = await runQuery(q);
 
-    console.log('Query result:', res);
+    // console.log('Query result:', res);
     return res.map((v: any) => {
         const vacation = new VacationModel(v);
         vacation.image_filename = v.image_filename ? `http://localhost:${appConfig.port}/images/${v.image_filename}` : '';//TODO change from localhost to the server address
@@ -240,7 +240,7 @@ export async function getVacationsWithFollowers(): Promise<VacationModel[]> {
     `;
     const res = await runQuery(q);
 
-    console.log('Query result:', res);
+    // console.log('Query result:', res);
     return res.map((v: any) => {
         const vacation = new VacationModel(v);
         vacation.image_filename = v.image_filename ? `http://localhost:${appConfig.port}/images/${v.image_filename}` : '';// do i need it here?

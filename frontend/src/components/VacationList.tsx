@@ -1,10 +1,9 @@
-// frontend/src/components/VacationList.tsx
 import React, { useEffect, useState } from 'react';
 import axios, { AxiosResponse } from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './VacationList.css';
 import APP_CONFIG from '../utils/appconfig';
-import { followVacation, unfollowVacation } from '../api/followAPI';
+import { followVacation, unfollowVacation, getFollowedVacationsByUser } from '../api/followAPI';
 import { deleteVacation } from '../api/vacationsAPI';
 
 interface Vacation {
@@ -26,10 +25,11 @@ type ApiResponse = Vacation[];
 
 const VacationList: React.FC<{ user: any }> = ({ user }) => {
     const [vacations, setVacations] = useState<Vacation[]>([]);
+    const [followedVacations, setFollowedVacations] = useState<number[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const itemsPerPage = 3; // Number of items per page
+    const itemsPerPage = 3;
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -51,12 +51,29 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
         fetchVacations();
     }, []);
 
+    useEffect(() => {
+        const fetchFollowedVacations = async () => {
+            try {
+                const followedVacationIds = await getFollowedVacationsByUser(user.id);
+                console.log('Followed Vacations:', followedVacationIds);
+                setFollowedVacations(followedVacationIds);
+            } catch (error) {
+                console.error('Error fetching followed vacations:', error);
+            }
+        };
+
+        if (user && user.id) {
+            fetchFollowedVacations();
+        }
+    }, [user]);
+
     const handleFollow = async (vacationId: number) => {
         try {
             await followVacation(user.id, vacationId);
+            setFollowedVacations([...followedVacations, vacationId]);
             setVacations(vacations.map(v =>
                 v.id.vacation_id === vacationId
-                    ? { ...v, isFollowed: true, followersCount: v.followersCount + 1 }
+                    ? { ...v, followersCount: v.followersCount + 1 }
                     : v
             ));
         } catch (error) {
@@ -68,9 +85,10 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
     const handleUnfollow = async (vacationId: number) => {
         try {
             await unfollowVacation(user.id, vacationId);
+            setFollowedVacations(followedVacations.filter(id => id !== vacationId));
             setVacations(vacations.map(v =>
                 v.id.vacation_id === vacationId
-                    ? { ...v, isFollowed: false, followersCount: v.followersCount - 1 }
+                    ? { ...v, followersCount: v.followersCount - 1 }
                     : v
             ));
         } catch (error) {
@@ -145,7 +163,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                                     </>
                                 )}
                                 {user.role !== 'Admin' && (
-                                    vacation.isFollowed ? (
+                                    followedVacations.includes(vacation.id.vacation_id) ? (
                                         <button onClick={() => handleUnfollow(vacation.id.vacation_id)}>Unfollow</button>
                                     ) : (
                                         <button onClick={() => handleFollow(vacation.id.vacation_id)}>Follow</button>

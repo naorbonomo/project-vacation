@@ -20,7 +20,7 @@ vacationRouter.get(appConfig.routePrefix + "/vacations",  async (req: Request, r
     try {
         console.log('Fetching all vacations');
         const vacations = await getAllVacations();
-        console.log('Vacations fetched:', vacations);
+        // console.log('Vacations fetched:', vacations);
         res.status(StatusCode.Ok).json(vacations);
     } catch (error) {
         console.error('Error fetching vacations:', error);
@@ -147,7 +147,7 @@ vacationRouter.get(appConfig.routePrefix + "/vacations-with-followers", async (r
     try {
         console.log('Fetching vacations with followers count');
         const vacations = await getVacationsWithFollowers();
-        console.log('Vacations with followers fetched:', vacations);
+        // console.log('Vacations with followers fetched:', vacations);
         res.status(StatusCode.Ok).json(vacations);
     } catch (error) {
         console.error('Error fetching vacations with followers:', error);

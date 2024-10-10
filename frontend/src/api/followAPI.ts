@@ -19,7 +19,11 @@ export async function unfollowVacation(userId: number, vacationId: number): Prom
 }
 
 // Method to get all vacations followed by a specific user
-export async function getFollowedVacationsByUser(userId: number): Promise<Vacation[]> {
+export async function getFollowedVacationsByUser(userId: number): Promise<number[]> {
+    console.log("fetching followed vacations by user");
     const response = await axios.get(`${APP_CONFIG.API_BASE_URL}/api/followed-vacations/${userId}`);
+    console.log("respone is :",response.data);
+    
     return response.data;
 }
+

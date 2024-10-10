@@ -76,7 +76,7 @@ const App: React.FC = () => {
               </>
             ) : (
               <>
-                <span>Hello, {user.first_name}</span>
+                <span>Hello, {user.first_name} {user.last_name}</span>
                 <button onClick={logout}>Logout</button>
               </>
             )}

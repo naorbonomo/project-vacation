@@ -46,20 +46,20 @@ followRouter.post(appConfig.routePrefix + "/unfollow", async (req: Request, res:
 });
 
 // Get all followed vacations for a user
-followRouter.get(appConfig.routePrefix + "/followed-vacations/:userId", async (req: Request, res: Response, next: NextFunction) => {
+followRouter.get(appConfig.routePrefix + "/followed-vacations/:userId", async (req: Request, res: Response) => {
     try {
-        const { userId } = req.params;
-        const followData = new FollowModel({ user_id: parseInt(userId, 10), vacation_id: 0 }); // Vacation ID is irrelevant here
-        followData.validate(); // Validate the userId
+        console.log("Fetching followed vacations for user");
+        const userId = parseInt(req.params.userId, 10);
 
-        const followedVacations = await followService.getFollowedVacations(followData.user_id);
-        res.status(StatusCode.Ok).json(followedVacations);
-    } catch (error) {
-        if (error instanceof ValidationError) {
-            res.status(StatusCode.BadRequest).json({ error: error.message });
-        } else {
-            console.error('Error fetching followed vacations:', error);
-            res.status(StatusCode.ServerError).json({ error: 'Internal server error' });
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid user ID' });
         }
+
+        const followedVacations = await followService.getFollowedVacations(userId);
+        console.log("Followed vacations for user:", followedVacations);
+        res.status(200).json(followedVacations);
+    } catch (error) {
+        console.error('Error fetching followed vacations:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
