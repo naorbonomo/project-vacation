@@ -29,7 +29,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const itemsPerPage = 3;
+    const itemsPerPage = 9;
     const navigate = useNavigate();
 
     const [showOnlyFollowed, setShowOnlyFollowed] = useState<boolean>(false);
