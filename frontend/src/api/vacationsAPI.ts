@@ -24,7 +24,7 @@ export async function deleteVacation(vacationId: number): Promise<void> {
 // Fetch a vacation by ID
 export async function fetchVacation(id: string): Promise<Vacation> {
     const response = await axios.get(`${APP_CONFIG.API_BASE_URL}/api/vacations/${id}`);
-    return response.data;
+    return response.data.id;
 }
 
 // Update a vacation by ID

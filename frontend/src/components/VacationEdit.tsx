@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import APP_CONFIG from '../utils/appconfig';
 import './VacationForm.css';
+import { fetchVacation, updateVacation } from '../api/vacationsAPI';
 
 const VacationEdit: React.FC = () => {
   const [vacation, setVacation] = useState({
@@ -21,12 +22,16 @@ const VacationEdit: React.FC = () => {
   const { id } = useParams();
 
   useEffect(() => {
-    const fetchVacation = async () => {
+    const loadVacation = async () => {
+      if (!id) {
+        setError('Invalid vacation ID.');
+        return;
+      }
+  
       try {
-        const response = await axios.get(`${APP_CONFIG.API_BASE_URL}/api/vacations/${id}`);
-        const vacationData = response.data.id;
+        const vacationData = await fetchVacation(id);
         console.log('Fetched vacation data:', vacationData);
-
+  
         setVacation({
           destination: vacationData.destination,
           description: vacationData.description,
@@ -35,8 +40,7 @@ const VacationEdit: React.FC = () => {
           price: vacationData.price.toString(),
           image_filename: vacationData.image_filename,
         });
-
-        // Set preview if there's an existing image
+  
         if (vacationData.image_filename) {
           setPreview(`${vacationData.image_filename}`);
         }
@@ -45,9 +49,10 @@ const VacationEdit: React.FC = () => {
         setError('Failed to load vacation details. Please try again later.');
       }
     };
-
-    fetchVacation();
+  
+    loadVacation();
   }, [id]);
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -84,11 +89,16 @@ const VacationEdit: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!validateForm()) {
       return;
     }
-
+  
+    if (!id) {
+      setError('Invalid vacation ID.');
+      return;
+    }
+  
     const formData = new FormData();
     formData.append('destination', vacation.destination);
     formData.append('description', vacation.description);
@@ -98,14 +108,14 @@ const VacationEdit: React.FC = () => {
     if (image) {
       formData.append('image', image);
     }
-
+  
     console.log('Form data entries:');
     formData.forEach((value, key) => {
       console.log(`${key}: ${value}`);
     });
-
+  
     try {
-      await axios.put(`${APP_CONFIG.API_BASE_URL}/api/vacations/${id}`, formData);
+      await updateVacation(id, formData);
       alert('Vacation updated successfully');
       navigate('/');
     } catch (error) {
@@ -113,6 +123,7 @@ const VacationEdit: React.FC = () => {
       alert('Failed to update vacation. Please try again.');
     }
   };
+  
 
   return (
     <div className="vacation-form-container">

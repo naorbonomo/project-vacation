@@ -136,6 +136,12 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
 
         return true;
     });
+    const handleFilterChange = (filterSetter: React.Dispatch<React.SetStateAction<boolean>>) => {
+        filterSetter(prev => {
+            setCurrentPage(1);
+            return !prev;
+        });
+    };
 
     const totalPages = Math.ceil(filteredVacations.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -166,7 +172,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                         <input
                             type="checkbox"
                             checked={showOnlyFollowed}
-                            onChange={(e) => setShowOnlyFollowed(e.target.checked)}
+                            onChange={() => handleFilterChange(setShowOnlyFollowed)}
                         />
                         Show only vacations I follow
                     </label>
@@ -175,7 +181,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                     <input
                         type="checkbox"
                         checked={showOnlyFuture}
-                        onChange={(e) => setShowOnlyFuture(e.target.checked)}
+                        onChange={() => handleFilterChange(setShowOnlyFuture)}
                     />
                     Show only future vacations
                 </label>
@@ -183,10 +189,11 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                     <input
                         type="checkbox"
                         checked={showOnlyActive}
-                        onChange={(e) => setShowOnlyActive(e.target.checked)}
+                        onChange={() => handleFilterChange(setShowOnlyActive)}
                     />
                     Show only active vacations
                 </label>
+
             </div>
             {filteredVacations.length === 0 ? (
                 <p className="no-vacations">No vacations available based on your filters.</p>
@@ -214,8 +221,8 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                                         </div>
                                     ) : (
                                         <button
-                                            onClick={() => followedVacations.includes(vacation.id.vacation_id) 
-                                                ? handleUnfollow(vacation.id.vacation_id) 
+                                            onClick={() => followedVacations.includes(vacation.id.vacation_id)
+                                                ? handleUnfollow(vacation.id.vacation_id)
                                                 : handleFollow(vacation.id.vacation_id)}
                                             className={followedVacations.includes(vacation.id.vacation_id) ? 'unfollow' : 'follow'}
                                         >
@@ -227,15 +234,15 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                         ))}
                     </div>
                     <div className="pagination-controls">
-                        <button 
-                            onClick={handlePreviousPage} 
+                        <button
+                            onClick={handlePreviousPage}
                             disabled={currentPage === 1}
                         >
                             Previous
                         </button>
                         <span>Page {currentPage} of {totalPages}</span>
-                        <button 
-                            onClick={handleNextPage} 
+                        <button
+                            onClick={handleNextPage}
                             disabled={currentPage === totalPages}
                         >
                             Next
