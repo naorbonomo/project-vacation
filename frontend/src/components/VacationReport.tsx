@@ -12,6 +12,7 @@ import {
 } from 'chart.js';
 import { getVacationsWithFollowers } from '../api/vacationsAPI';
 import { Vacation } from '../types/vacationType';
+import './VacationReport.css'; // Import the styles for the report
 
 // Register necessary components with ChartJS
 ChartJS.register(
@@ -68,6 +69,7 @@ const VacationReport: React.FC = () => {
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     scales: {
       y: {
         type: 'linear' as const,
@@ -103,10 +105,16 @@ const VacationReport: React.FC = () => {
   };
 
   return (
-    <div>
-      <h2>Vacations Report</h2>
-      <button onClick={downloadCSV}>Download CSV</button>
-      <Bar data={data} options={options} />
+    <div className="vacation-report-container">
+      <div className="vacation-report-card">
+        <h2>Vacations Report</h2>
+        <button className="download-csv-button" onClick={downloadCSV}>
+          Download CSV
+        </button>
+        <div className="chart-container">
+          <Bar data={data} options={options} />
+        </div>
+      </div>
     </div>
   );
 };

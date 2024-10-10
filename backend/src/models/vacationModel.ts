@@ -10,7 +10,7 @@ interface VacationInterface {
     start_date: Date; // Matches the database field
     end_date: Date;   // Matches the database field
     price: number;
-    imageUrl: string;
+    image_filename: string;
     followersCount: number;
 }
 
@@ -22,7 +22,7 @@ export default class VacationModel {
         public start_date?: Date, // Matches the database field
         public end_date?: Date,   // Matches the database field
         public price?: number,
-        public imageUrl?: string,
+        public image_filename?: string,
         public followersCount?: number
 
     ) {}
@@ -34,7 +34,7 @@ export default class VacationModel {
         start_date: Joi.date().required(), // Adjusted to match the property name
         end_date: Joi.date().required().min(Joi.ref('start_date')), // Adjusted to match the property name
         price: Joi.number().required().positive(),
-        imageUrl: Joi.string().optional().uri(),
+        image_filename: Joi.string().optional().uri(),
     });
 
     validate(): void {

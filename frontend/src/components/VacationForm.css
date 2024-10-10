@@ -1,0 +1,66 @@
+/* frontend/src/components/VacationForm.css */
+.vacation-form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh; /* Centers the card vertically */
+    padding: 20px;
+}
+
+.vacation-form {
+    max-width: 400px;
+    width: 100%;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    text-align: center;
+}
+
+.vacation-form h1 {
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    color: #333;
+    font-family: 'Poppins', sans-serif;
+}
+
+.vacation-form label {
+    display: block;
+    text-align: left;
+    margin-bottom: 5px;
+    color: #666;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.vacation-form input {
+    width: calc(100% - 20px);
+    margin-bottom: 15px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.vacation-form button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.vacation-form button:hover {
+    background-color: #0056b3;
+}
+
+.vacation-form .error {
+    color: red;
+    margin-bottom: 15px;
+    text-align: center;
+}

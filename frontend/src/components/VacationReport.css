@@ -1,0 +1,47 @@
+/* frontend/src/components/VacationReport.css */
+.vacation-report-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    background-color: #f0f2f5;
+    padding: 20px;
+}
+
+.vacation-report-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 800px;
+    width: 100%;
+    text-align: center;
+}
+
+.chart-container {
+    position: relative;
+    height: 400px; /* Adjust the height for a smaller chart */
+    margin-top: 20px;
+}
+
+.download-csv-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.download-csv-button:hover {
+    background-color: #0056b3;
+}
+
+.vacation-report-card h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #333;
+}

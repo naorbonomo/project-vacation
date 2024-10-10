@@ -20,7 +20,7 @@ export async function getAllVacations(): Promise<VacationModel[]> {
     console.log('Query result:', res);
     return res.map((v: any) => {
         const vacation = new VacationModel(v);
-        vacation.imageUrl = v.image_filename ? `http://localhost:${appConfig.port}/images/${v.image_filename}` : '';//TODO change from localhost to the server address
+        vacation.image_filename = v.image_filename ? `http://localhost:${appConfig.port}/images/${v.image_filename}` : '';//TODO change from localhost to the server address
         return vacation;
     });
 }
@@ -156,11 +156,11 @@ export async function updateVacation(id: number, vacationData: Partial<VacationM
         const newImageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileName}`;
         
         // Add image_filename to update fields
-        addUpdateField('imageUrl', newImageUrl);
+        addUpdateField('image_filename', newImageUrl);
   
         // Delete old image if it exists
-        if (currentVacation.imageUrl) {
-          const oldImageKey = currentVacation.imageUrl.split('.com/')[1];
+        if (currentVacation.image_filename) {
+          const oldImageKey = currentVacation.image_filename.split('.com/')[1];
           const deleteParams = {
             Bucket: process.env.AWS_S3_BUCKET_NAME as string,
             Key: oldImageKey,
@@ -243,7 +243,7 @@ export async function getVacationsWithFollowers(): Promise<VacationModel[]> {
     console.log('Query result:', res);
     return res.map((v: any) => {
         const vacation = new VacationModel(v);
-        vacation.imageUrl = v.image_filename ? `http://localhost:${appConfig.port}/images/${v.image_filename}` : '';// do i need it here?
+        vacation.image_filename = v.image_filename ? `http://localhost:${appConfig.port}/images/${v.image_filename}` : '';// do i need it here?
         vacation.followersCount = v.followersCount; // Include followers count
         return vacation;
     });

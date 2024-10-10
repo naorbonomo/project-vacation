@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import APP_CONFIG from '../utils/appconfig';
+import './VacationForm.css'; // Import the styles
 
 const VacationEdit: React.FC = () => {
   const [vacation, setVacation] = useState({
@@ -104,7 +105,8 @@ const VacationEdit: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="vacation-form-container">
+        <div className="vacation-form">
       <h1>Edit Vacation</h1>
       {error && <div style={{ color: 'red' }}>{error}</div>}
       <form onSubmit={handleSubmit}>
@@ -134,7 +136,7 @@ const VacationEdit: React.FC = () => {
         </div>
         <button type="submit">Update Vacation</button>
       </form>
-    </div>
+    </div></div>
   );
 };
 

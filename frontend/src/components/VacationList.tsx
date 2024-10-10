@@ -4,6 +4,8 @@ import axios, { AxiosResponse } from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './VacationList.css';
 import APP_CONFIG from '../utils/appconfig';
+import { followVacation, unfollowVacation } from '../api/followAPI';
+import { deleteVacation } from '../api/vacationsAPI';
 
 interface Vacation {
     id: {
@@ -16,8 +18,8 @@ interface Vacation {
         image_filename: string;
     },
     imageUrl: string;
-    followersCount: number; // To display follower count
-    isFollowed: boolean; // Track if the user has followed this vacation
+    followersCount: number;
+    isFollowed: boolean;
 }
 
 type ApiResponse = Vacation[];
@@ -26,6 +28,8 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
     const [vacations, setVacations] = useState<Vacation[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const itemsPerPage = 3; // Number of items per page
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -49,15 +53,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
 
     const handleFollow = async (vacationId: number) => {
         try {
-            console.log('Sending follow request with:', {
-                user_id: user.id,
-                vacation_id: vacationId,
-            });
-            const response = await axios.post(`${APP_CONFIG.API_BASE_URL}/api/follow`, {
-                user_id: user.id,
-                vacation_id: vacationId,
-            });
-            console.log('Follow response:', response.data);
+            await followVacation(user.id, vacationId);
             setVacations(vacations.map(v =>
                 v.id.vacation_id === vacationId
                     ? { ...v, isFollowed: true, followersCount: v.followersCount + 1 }
@@ -71,10 +67,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
 
     const handleUnfollow = async (vacationId: number) => {
         try {
-            await axios.post(`${APP_CONFIG.API_BASE_URL}/api/unfollow`, {
-                user_id: user.id,
-                vacation_id: vacationId,
-            });
+            await unfollowVacation(user.id, vacationId);
             setVacations(vacations.map(v =>
                 v.id.vacation_id === vacationId
                     ? { ...v, isFollowed: false, followersCount: v.followersCount - 1 }
@@ -89,7 +82,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
     const handleDelete = async (id: number) => {
         if (window.confirm('Are you sure you want to delete this vacation?')) {
             try {
-                await axios.delete(`${APP_CONFIG.API_BASE_URL}/api/vacations/${id}`);
+                await deleteVacation(id);
                 setVacations(vacations.filter(v => v.id.vacation_id !== id));
                 alert('Vacation deleted successfully');
             } catch (error) {
@@ -101,6 +94,19 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
 
     const handleEdit = (id: number) => {
         navigate(`/vacation-edit/${id}`);
+    };
+
+    // Pagination logic
+    const totalPages = Math.ceil(vacations.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const currentVacations = vacations.slice(startIndex, startIndex + itemsPerPage);
+
+    const handlePreviousPage = () => {
+        setCurrentPage(prev => Math.max(prev - 1, 1));
+    };
+
+    const handleNextPage = () => {
+        setCurrentPage(prev => Math.min(prev + 1, totalPages));
     };
 
     if (isLoading) {
@@ -117,36 +123,54 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
             {vacations.length === 0 ? (
                 <p>No vacations available at the moment.</p>
             ) : (
-                <div className="vacation-grid">
-                    {vacations.map((vacation) => (
-                        <div key={vacation.id.vacation_id} className="vacation-card">
-                            <img
-                                src={vacation.id.image_filename}
-                                alt={vacation.id.destination}
-                                className="vacation-image"
-                            />
-                            <h2>{vacation.id.destination}</h2>
-                            <p>{vacation.id.description}</p>
-                            <p>Start Date: {new Date(vacation.id.start_date).toLocaleDateString()}</p>
-                            <p>End Date: {new Date(vacation.id.end_date).toLocaleDateString()}</p>
-                            <p>Price: ${parseFloat(vacation.id.price).toFixed(2)}</p>
-                            <p>Followers: {vacation.followersCount}</p>
-                            {user.role === 'Admin' && (
-                                <>
-                                    <button onClick={() => handleEdit(vacation.id.vacation_id)}>Edit</button>
-                                    <button onClick={() => handleDelete(vacation.id.vacation_id)}>Delete</button>
-                                </>
-                            )}
-                            {user.role !== 'Admin' && (
-                                vacation.isFollowed ? (
-                                    <button onClick={() => handleUnfollow(vacation.id.vacation_id)}>Unfollow</button>
-                                ) : (
-                                    <button onClick={() => handleFollow(vacation.id.vacation_id)}>Follow</button>
-                                )
-                            )}
-                        </div>
-                    ))}
-                </div>
+                <>
+                    <div className="vacation-grid">
+                        {currentVacations.map((vacation) => (
+                            <div key={vacation.id.vacation_id} className="vacation-card">
+                                <img
+                                    src={vacation.id.image_filename}
+                                    alt={vacation.id.destination}
+                                    className="vacation-image"
+                                />
+                                <h2>{vacation.id.destination}</h2>
+                                <p>{vacation.id.description}</p>
+                                <p>Start Date: {new Date(vacation.id.start_date).toLocaleDateString()}</p>
+                                <p>End Date: {new Date(vacation.id.end_date).toLocaleDateString()}</p>
+                                <p>Price: ${parseFloat(vacation.id.price).toFixed(2)}</p>
+                                <p>Followers: {vacation.followersCount}</p>
+                                {user.role === 'Admin' && (
+                                    <>
+                                        <button onClick={() => handleEdit(vacation.id.vacation_id)}>Edit</button>
+                                        <button onClick={() => handleDelete(vacation.id.vacation_id)}>Delete</button>
+                                    </>
+                                )}
+                                {user.role !== 'Admin' && (
+                                    vacation.isFollowed ? (
+                                        <button onClick={() => handleUnfollow(vacation.id.vacation_id)}>Unfollow</button>
+                                    ) : (
+                                        <button onClick={() => handleFollow(vacation.id.vacation_id)}>Follow</button>
+                                    )
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    {/* Pagination controls */}
+                    <div className="pagination-controls">
+                        <button 
+                            onClick={handlePreviousPage} 
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </button>
+                        <span>Page {currentPage} of {totalPages}</span>
+                        <button 
+                            onClick={handleNextPage} 
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </>
             )}
         </div>
     );

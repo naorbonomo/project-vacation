@@ -1,6 +1,8 @@
+// frontend/src/components/Navigation.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { User } from '../types';
+import './Navigation.css';
 
 interface NavigationProps {
   isAuthenticated: boolean;
@@ -11,26 +13,28 @@ interface NavigationProps {
 const Navigation: React.FC<NavigationProps> = ({ isAuthenticated, user, onLogout }) => {
   return (
     <nav>
-      <ul>
-        <li><Link to="/">Home</Link></li>
+      <div className="nav-links">
+        <Link to="/">Home</Link>
+        {isAuthenticated && user && user.role === 'Admin' && (
+          <>
+            <Link to="/vacation-form">Add Vacation</Link>
+            <Link to="/vacation-report">Vacation Report</Link>
+          </>
+        )}
+      </div>
+      <div className="auth-links">
         {isAuthenticated && user ? (
           <>
-            <li>Hello, {user.name}</li>
-            {user.role === 'Admin' && (
-              <>
-                <li><Link to="/vacation-form">Add Vacation</Link></li>
-                <li><Link to="/vacation-report">Vacation Report</Link></li> {/* Add the report link */}
-              </>
-            )}
-            <li><button onClick={onLogout}>Logout</button></li>
+            <span>Hello, {user.name}</span>
+            <button onClick={onLogout}>Logout</button>
           </>
         ) : (
           <>
-            <li><Link to="/login">Login</Link></li>
-            <li><Link to="/register">Register</Link></li>
+            <Link to="/login">Login</Link>
+            <Link to="/register">Register</Link>
           </>
         )}
-      </ul>
+      </div>
     </nav>
   );
 };

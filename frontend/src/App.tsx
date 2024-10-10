@@ -10,6 +10,7 @@ import VacationEdit from './components/VacationEdit';
 import CityAnimation from './components/CityAnimation';
 import VacationReport from './components/VacationReport';
 import APP_CONFIG from './utils/appconfig';
+import './App.css'; // Import your updated CSS
 
 const App: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -56,32 +57,43 @@ const App: React.FC = () => {
   return (
     <Router>
       <div>
-        <CityAnimation />
+        {/* <CityAnimation /> */}
         <nav>
-          <ul>
-            <li><Link to="/">Home</Link></li>
+          <div className="nav-links">
+            <Link to="/">Home</Link>
+            {user && user.role === 'Admin' && (
+              <>
+                <Link to="/vacation-form">Add Vacation</Link>
+                <Link to="/vacation-report">Vacation Report</Link>
+              </>
+            )}
+          </div>
+          <div className="auth-links">
             {!user ? (
               <>
-                <li><Link to="/login">Login</Link></li>
-                <li><Link to="/register">Register</Link></li>
+                <Link to="/login">Login</Link>
+                <Link to="/register">Register</Link>
               </>
             ) : (
               <>
-                <li>Hello, {user.first_name}</li>
-                {user.role === 'Admin' && (
-                  <>
-                    <li><Link to="/vacation-form">Add Vacation</Link></li>
-                    <li><Link to="/vacation-report">Vacation Report</Link></li>
-                  </>
-                )}
-                <li><button onClick={logout}>Logout</button></li>
+                <span>Hello, {user.first_name}</span>
+                <button onClick={logout}>Logout</button>
               </>
             )}
-          </ul>
+          </div>
         </nav>
 
         <Routes>
-          <Route path="/" element={isAuthenticated ? <VacationList user={user} /> : <div>Please log in to see vacations.</div>} />
+          <Route
+            path="/"
+            element={
+              isAuthenticated && user?.id ? (
+                <VacationList user={user} />
+              ) : (
+                <div>Please log in to see vacations.</div>
+              )
+            }
+          />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/vacation-form" element={<VacationForm />} />
