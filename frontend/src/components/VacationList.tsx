@@ -5,6 +5,7 @@ import './VacationList.css';
 import APP_CONFIG from '../utils/appconfig';
 import { followVacation, unfollowVacation, getFollowedVacationsByUser } from '../api/followAPI';
 import { deleteVacation } from '../api/vacationsAPI';
+import { Heart } from 'lucide-react';
 
 interface Vacation {
     id: {
@@ -70,33 +71,28 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
         }
     }, [user]);
 
-    const handleFollow = async (vacationId: number) => {
+    const handleLike = async (vacationId: number) => {
         try {
-            await followVacation(user.id, vacationId);
-            setFollowedVacations([...followedVacations, vacationId]);
-            setVacations(vacations.map(v =>
-                v.id.vacation_id === vacationId
-                    ? { ...v, followersCount: v.followersCount + 1 }
-                    : v
-            ));
+            if (followedVacations.includes(vacationId)) {
+                await unfollowVacation(user.id, vacationId);
+                setFollowedVacations(followedVacations.filter(id => id !== vacationId));
+                setVacations(vacations.map(v =>
+                    v.id.vacation_id === vacationId
+                        ? { ...v, followersCount: v.followersCount - 1 }
+                        : v
+                ));
+            } else {
+                await followVacation(user.id, vacationId);
+                setFollowedVacations([...followedVacations, vacationId]);
+                setVacations(vacations.map(v =>
+                    v.id.vacation_id === vacationId
+                        ? { ...v, followersCount: v.followersCount + 1 }
+                        : v
+                ));
+            }
         } catch (error) {
-            console.error('Error following vacation:', error);
-            alert('Failed to follow the vacation. Please try again later.');
-        }
-    };
-
-    const handleUnfollow = async (vacationId: number) => {
-        try {
-            await unfollowVacation(user.id, vacationId);
-            setFollowedVacations(followedVacations.filter(id => id !== vacationId));
-            setVacations(vacations.map(v =>
-                v.id.vacation_id === vacationId
-                    ? { ...v, followersCount: v.followersCount - 1 }
-                    : v
-            ));
-        } catch (error) {
-            console.error('Error unfollowing vacation:', error);
-            alert('Failed to unfollow the vacation. Please try again later.');
+            console.error('Error toggling vacation like:', error);
+            alert('Failed to update vacation like status. Please try again later.');
         }
     };
 
@@ -136,6 +132,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
 
         return true;
     });
+
     const handleFilterChange = (filterSetter: React.Dispatch<React.SetStateAction<boolean>>) => {
         filterSetter(prev => {
             setCurrentPage(1);
@@ -163,40 +160,37 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
         return <div className="error">Error: {error}</div>;
     }
 
-    // Adding class conditionally for Admins (bw-image class for grayscale effect)
-    const applyAdminStyle = user?.role === 'Admin' ? 'bw-image' : '';
-
     return (
         <div className="vacation-list">
             <h1>Where to next, {user.first_name}</h1>
             <div className="filter-options">
-  {user.role !== 'Admin' && (
-    <label className="custom-checkbox">
-      <input
-        type="checkbox"
-        checked={showOnlyFollowed}
-        onChange={() => handleFilterChange(setShowOnlyFollowed)}
-      />
-      <span>Show only vacations I follow</span>
-    </label>
-  )}
-  <label className="custom-checkbox">
-    <input
-      type="checkbox"
-      checked={showOnlyFuture}
-      onChange={() => handleFilterChange(setShowOnlyFuture)}
-    />
-    <span>Show only future vacations</span>
-  </label>
-  <label className="custom-checkbox">
-    <input
-      type="checkbox"
-      checked={showOnlyActive}
-      onChange={() => handleFilterChange(setShowOnlyActive)}
-    />
-    <span>Show only active vacations</span>
-  </label>
-</div>
+                {user.role !== 'Admin' && (
+                    <label className="custom-checkbox">
+                        <input
+                            type="checkbox"
+                            checked={showOnlyFollowed}
+                            onChange={() => handleFilterChange(setShowOnlyFollowed)}
+                        />
+                        <span>Show only vacations I like</span>
+                    </label>
+                )}
+                <label className="custom-checkbox">
+                    <input
+                        type="checkbox"
+                        checked={showOnlyFuture}
+                        onChange={() => handleFilterChange(setShowOnlyFuture)}
+                    />
+                    <span>Show only future vacations</span>
+                </label>
+                <label className="custom-checkbox">
+                    <input
+                        type="checkbox"
+                        checked={showOnlyActive}
+                        onChange={() => handleFilterChange(setShowOnlyActive)}
+                    />
+                    <span>Show only active vacations</span>
+                </label>
+            </div>
 
             {filteredVacations.length === 0 ? (
                 <p className="no-vacations">No vacations available based on your filters.</p>
@@ -205,34 +199,39 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                     <div className="vacation-grid">
                         {currentVacations.map((vacation) => (
                             <div key={vacation.id.vacation_id} className="vacation-card">
-                                <img
-                                    src={vacation.id.image_filename}
-                                    alt={vacation.id.destination}
-                                    className={`vacation-image ${applyAdminStyle}`} /* Apply grayscale class for admin */
-                                />
+                                <div className="image-container">
+                                    <img
+                                        src={vacation.id.image_filename}
+                                        alt={vacation.id.destination}
+                                        className={`vacation-image ${user?.role === 'Admin' ? 'bw-image' : ''}`}
+                                    />
+                                    <div className="overlay-buttons">
+                                        {user.role === 'Admin' ? (
+                                            <>
+                                                <button onClick={() => handleEdit(vacation.id.vacation_id)} className="edit">Edit</button>
+                                                <button onClick={() => handleDelete(vacation.id.vacation_id)} className="delete">Delete</button>
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleLike(vacation.id.vacation_id)}
+                                                className={`like-button ${followedVacations.includes(vacation.id.vacation_id) ? 'liked' : ''}`}
+                                            >
+                                                <Heart 
+                                                    size={24} 
+                                                    fill={followedVacations.includes(vacation.id.vacation_id) ? "red" : "none"}
+                                                    stroke={followedVacations.includes(vacation.id.vacation_id) ? "red" : "currentColor"}
+                                                />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                                 <div className="vacation-details">
                                     <h2>{vacation.id.destination}</h2>
                                     <p className="description">{vacation.id.description}</p>
                                     <p>Start Date: {new Date(vacation.id.start_date).toLocaleDateString()}</p>
                                     <p>End Date: {new Date(vacation.id.end_date).toLocaleDateString()}</p>
                                     <p className="price">Price: ${parseFloat(vacation.id.price).toFixed(2)}</p>
-                                    <p className="followers">Followers: {vacation.followersCount}</p>
-                                    {user.role === 'Admin' ? (
-  <div className="admin-actions">
-    <button onClick={() => handleEdit(vacation.id.vacation_id)} className="edit">Edit</button>
-    <button onClick={() => handleDelete(vacation.id.vacation_id)} className="delete">Delete</button>
-  </div>
-) : (
-  <button
-    onClick={() => followedVacations.includes(vacation.id.vacation_id)
-      ? handleUnfollow(vacation.id.vacation_id)
-      : handleFollow(vacation.id.vacation_id)}
-    className={followedVacations.includes(vacation.id.vacation_id) ? 'unfollow' : 'follow'}
-  >
-    {followedVacations.includes(vacation.id.vacation_id) ? 'Unfollow' : 'Follow'}
-  </button>
-)}
-
+                                    <p className="followers">Likes: {vacation.followersCount}</p>
                                 </div>
                             </div>
                         ))}

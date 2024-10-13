@@ -3,17 +3,17 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-    background-color: #f9f9f9; /* Light background for better readability */
+    background-color: #f9f9f9;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 200px; /* Add this to push content below the navbar */
+    margin-top: 200px;
 }
 
 .vacation-list h1 {
     text-align: center;
-    color: #4a4a4a; /* Softer text color */
+    color: #4a4a4a;
     margin-bottom: 30px;
-    font-family: 'Poppins', sans-serif; /* Modern font */
+    font-family: 'Poppins', sans-serif;
     font-size: 2rem;
 }
 
@@ -25,7 +25,7 @@
 
 .vacation-card {
     border: 1px solid #ddd;
-    border-radius: 12px; /* Softer corners */
+    border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
@@ -34,52 +34,136 @@
 
 .vacation-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Enhance hover effect */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Normal vacation images */
+.image-container {
+    position: relative;
+    overflow: hidden;
+}
+
 .vacation-image {
     width: 100%;
     height: 200px;
     object-fit: cover;
+    transition: transform 0.3s ease;
 }
 
-/* Admin-specific 50% black-and-white (grayscale) filter */
 .bw-image {
     filter: grayscale(70%);
 }
 
+.overlay-buttons {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.edit, .delete, .like-button {
+    padding: 8px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.edit, .delete {
+    color: white;
+    font-size: 12px;
+}
+
+.edit {
+    background-color: #007bff;
+}
+
+.delete {
+    background-color: #dc3545;
+}
+
+.like-button {
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.like-button:hover {
+    transform: scale(1.1);
+}
+
+.liked {
+    background-color: #ffebee;
+}
+
+.vacation-card:hover .vacation-image {
+    transform: scale(1.05);
+}
+
+.vacation-details {
+    padding: 15px;
+}
 
 .vacation-card h2 {
     font-size: 1.2rem;
-    margin: 10px;
+    margin: 10px 0;
     color: #333;
     font-weight: 600;
 }
 
+.description {
+    font-style: italic;
+    color: #555;
+    margin-bottom: 10px;
+}
+
 .vacation-card p {
-    margin: 10px;
+    margin: 5px 0;
     color: #666;
 }
 
-.vacation-card p:last-child {
+.price {
     font-weight: bold;
-    color: #007bff;
+    color: #28a745;
 }
 
-button {
-    margin: 10px;
-    padding: 8px 16px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
+.followers {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-family: 'Arial', sans-serif;
+    margin-bottom: 20px;
+}
+
+.filter-options label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
     cursor: pointer;
-    transition: background-color 0.3s;
 }
 
-button:hover {
-    background-color: #0056b3;
+.custom-checkbox {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: #333;
+}
+
+.custom-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    accent-color: #f5a623;
+}
+
+.custom-checkbox span {
+    vertical-align: middle;
 }
 
 .pagination-controls {
@@ -109,84 +193,6 @@ button:hover {
     font-size: 1rem;
     color: #333;
 }
-/* Add these to your VacationList.css file */
-
-.filter-options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* Add some spacing between each checkbox */
-    font-family: 'Arial', sans-serif; /* Clean font similar to the example */
-  }
-
-.filter-options label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-}
-.custom-checkbox {
-    display: flex;
-    align-items: center;
-    font-size: 16px; /* Adjust font size */
-    color: #333; /* Subtle dark color for text */
-  }
-  
-  .custom-checkbox input[type="checkbox"] {
-    width: 18px; /* Checkbox size */
-    height: 18px; /* Checkbox size */
-    margin-right: 10px; /* Space between checkbox and label */
-    accent-color: #f5a623; /* Checkbox accent color (modern browsers support this) */
-  }
-  
-  .custom-checkbox span {
-    vertical-align: middle;
-  }
-.vacation-details {
-    padding: 15px;
-}
-
-.description {
-    font-style: italic;
-    color: #555;
-}
-
-.price {
-    font-weight: bold;
-    color: #28a745;
-}
-
-.followers {
-    font-size: 0.9rem;
-    color: #6c757d;
-}
-
-.admin-actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-}
-
-.delete {
-    background-color: #dc3545;
-}
-
-.delete:hover {
-    background-color: #c82333;
-}
-
-.follow, .unfollow {
-    width: 100%;
-    margin-top: 10px;
-}
-
-.unfollow {
-    background-color: #ffc107;
-    color: #000;
-}
-
-.unfollow:hover {
-    background-color: #e0a800;
-}
 
 .loading, .error, .no-vacations {
     text-align: center;
@@ -198,4 +204,3 @@ button:hover {
 .error {
     color: #dc3545;
 }
-
