@@ -6,6 +6,7 @@
     background-color: #f9f9f9; /* Light background for better readability */
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 200px; /* Add this to push content below the navbar */
 }
 
 .vacation-list h1 {
@@ -36,11 +37,18 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Enhance hover effect */
 }
 
+/* Normal vacation images */
 .vacation-image {
     width: 100%;
     height: 200px;
     object-fit: cover;
 }
+
+/* Admin-specific 50% black-and-white (grayscale) filter */
+.bw-image {
+    filter: grayscale(70%);
+}
+
 
 .vacation-card h2 {
     font-size: 1.2rem;
@@ -104,11 +112,11 @@ button:hover {
 /* Add these to your VacationList.css file */
 
 .filter-options {
-    margin-bottom: 20px;
     display: flex;
-    justify-content: center;
-    gap: 20px;
-}
+    flex-direction: column;
+    gap: 10px; /* Add some spacing between each checkbox */
+    font-family: 'Arial', sans-serif; /* Clean font similar to the example */
+  }
 
 .filter-options label {
     display: flex;
@@ -116,7 +124,23 @@ button:hover {
     gap: 5px;
     cursor: pointer;
 }
-
+.custom-checkbox {
+    display: flex;
+    align-items: center;
+    font-size: 16px; /* Adjust font size */
+    color: #333; /* Subtle dark color for text */
+  }
+  
+  .custom-checkbox input[type="checkbox"] {
+    width: 18px; /* Checkbox size */
+    height: 18px; /* Checkbox size */
+    margin-right: 10px; /* Space between checkbox and label */
+    accent-color: #f5a623; /* Checkbox accent color (modern browsers support this) */
+  }
+  
+  .custom-checkbox span {
+    vertical-align: middle;
+  }
 .vacation-details {
     padding: 15px;
 }
@@ -174,3 +198,4 @@ button:hover {
 .error {
     color: #dc3545;
 }
+

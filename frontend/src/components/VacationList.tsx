@@ -163,38 +163,41 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
         return <div className="error">Error: {error}</div>;
     }
 
+    // Adding class conditionally for Admins (bw-image class for grayscale effect)
+    const applyAdminStyle = user?.role === 'Admin' ? 'bw-image' : '';
+
     return (
         <div className="vacation-list">
-            <h1>Vacation List</h1>
+            <h1>Where to next, {user.first_name}</h1>
             <div className="filter-options">
-                {user.role !== 'Admin' && (
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={showOnlyFollowed}
-                            onChange={() => handleFilterChange(setShowOnlyFollowed)}
-                        />
-                        Show only vacations I follow
-                    </label>
-                )}
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={showOnlyFuture}
-                        onChange={() => handleFilterChange(setShowOnlyFuture)}
-                    />
-                    Show only future vacations
-                </label>
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={showOnlyActive}
-                        onChange={() => handleFilterChange(setShowOnlyActive)}
-                    />
-                    Show only active vacations
-                </label>
+  {user.role !== 'Admin' && (
+    <label className="custom-checkbox">
+      <input
+        type="checkbox"
+        checked={showOnlyFollowed}
+        onChange={() => handleFilterChange(setShowOnlyFollowed)}
+      />
+      <span>Show only vacations I follow</span>
+    </label>
+  )}
+  <label className="custom-checkbox">
+    <input
+      type="checkbox"
+      checked={showOnlyFuture}
+      onChange={() => handleFilterChange(setShowOnlyFuture)}
+    />
+    <span>Show only future vacations</span>
+  </label>
+  <label className="custom-checkbox">
+    <input
+      type="checkbox"
+      checked={showOnlyActive}
+      onChange={() => handleFilterChange(setShowOnlyActive)}
+    />
+    <span>Show only active vacations</span>
+  </label>
+</div>
 
-            </div>
             {filteredVacations.length === 0 ? (
                 <p className="no-vacations">No vacations available based on your filters.</p>
             ) : (
@@ -205,7 +208,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                                 <img
                                     src={vacation.id.image_filename}
                                     alt={vacation.id.destination}
-                                    className="vacation-image"
+                                    className={`vacation-image ${applyAdminStyle}`} /* Apply grayscale class for admin */
                                 />
                                 <div className="vacation-details">
                                     <h2>{vacation.id.destination}</h2>
@@ -215,20 +218,21 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                                     <p className="price">Price: ${parseFloat(vacation.id.price).toFixed(2)}</p>
                                     <p className="followers">Followers: {vacation.followersCount}</p>
                                     {user.role === 'Admin' ? (
-                                        <div className="admin-actions">
-                                            <button onClick={() => handleEdit(vacation.id.vacation_id)}>Edit</button>
-                                            <button onClick={() => handleDelete(vacation.id.vacation_id)} className="delete">Delete</button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => followedVacations.includes(vacation.id.vacation_id)
-                                                ? handleUnfollow(vacation.id.vacation_id)
-                                                : handleFollow(vacation.id.vacation_id)}
-                                            className={followedVacations.includes(vacation.id.vacation_id) ? 'unfollow' : 'follow'}
-                                        >
-                                            {followedVacations.includes(vacation.id.vacation_id) ? 'Unfollow' : 'Follow'}
-                                        </button>
-                                    )}
+  <div className="admin-actions">
+    <button onClick={() => handleEdit(vacation.id.vacation_id)} className="edit">Edit</button>
+    <button onClick={() => handleDelete(vacation.id.vacation_id)} className="delete">Delete</button>
+  </div>
+) : (
+  <button
+    onClick={() => followedVacations.includes(vacation.id.vacation_id)
+      ? handleUnfollow(vacation.id.vacation_id)
+      : handleFollow(vacation.id.vacation_id)}
+    className={followedVacations.includes(vacation.id.vacation_id) ? 'unfollow' : 'follow'}
+  >
+    {followedVacations.includes(vacation.id.vacation_id) ? 'Unfollow' : 'Follow'}
+  </button>
+)}
+
                                 </div>
                             </div>
                         ))}

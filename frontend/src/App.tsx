@@ -1,4 +1,3 @@
-// frontend/src/App.tsx
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import axios from 'axios';
@@ -9,8 +8,9 @@ import VacationForm from './components/VacationForm';
 import VacationEdit from './components/VacationEdit';
 import CityAnimation from './components/CityAnimation';
 import VacationReport from './components/VacationReport';
+import LandingPage from './components/LandingPage'; // New component for the landing page
 import APP_CONFIG from './utils/appconfig';
-import './App.css'; // Import your updated CSS
+import './App.css'; 
 
 const App: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -57,16 +57,19 @@ const App: React.FC = () => {
   return (
     <Router>
       <div>
-        {/* <CityAnimation /> */}
-        <nav>
-          <div className="nav-links">
-            <Link to="/">Home</Link>
-            {user && user.role === 'Admin' && (
-              <>
-                <Link to="/vacation-form">Add Vacation</Link>
-                <Link to="/vacation-report">Vacation Report</Link>
-              </>
-            )}
+        <nav className={user?.role === 'Admin' ? 'admin-nav' : 'user-nav'}>
+          <div className="brand">
+            <Link to="/" className="brand-link">NaorBonomo.com</Link>
+            <div className="nav-links">
+              <Link to="/">Home</Link>
+              <Link to="/vacation-list">Vacations</Link> {/* Always visible to all users */}
+              {user?.role === 'Admin' && (
+                <>
+                  <Link to="/vacation-form">Add Vacation</Link>
+                  <Link to="/vacation-report">Vacation Report</Link>
+                </>
+              )}
+            </div>
           </div>
           <div className="auth-links">
             {!user ? (
@@ -76,16 +79,23 @@ const App: React.FC = () => {
               </>
             ) : (
               <>
-                <span>Hello, {user.first_name} {user.last_name}</span>
+                <span>
+                  {user.role === 'Admin' ? (
+                    <>Hello Administrator, {user.first_name} {user.last_name}</>
+                  ) : (
+                    <>Hello, {user.first_name} {user.last_name}</>
+                  )}
+                </span>
                 <button onClick={logout}>Logout</button>
               </>
             )}
           </div>
         </nav>
-
+  
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route
-            path="/"
+            path="/vacation-list"
             element={
               isAuthenticated && user?.id ? (
                 <VacationList user={user} />
@@ -106,6 +116,8 @@ const App: React.FC = () => {
       </div>
     </Router>
   );
+  
+  
 };
 
 export default App;

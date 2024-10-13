@@ -1,0 +1,15 @@
+notes
+VALIDATE EMAIL IS NOT IN DB
+add comment when user is in the system already - email exists
+
+-fix get follow state when loading page
+-admin remove followed vacations from checks
+-add checks to users
+-admin edit vacay see preview image
+
+
+-admin color code diff
+-admin B/W images
+
+Where to next, Naor?
+
