@@ -1,4 +1,3 @@
-// frontend/src/components/VacationForm.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -20,6 +19,8 @@ const VacationForm: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams();
 
+    const today = new Date().toISOString().split('T')[0];
+
     useEffect(() => {
         if (id) {
             setIsEdit(true);
@@ -28,17 +29,24 @@ const VacationForm: React.FC = () => {
                     setVacation({
                         destination: response.data.destination,
                         description: response.data.description,
-                        startDate: new Date(response.data.startDate).toISOString().slice(0, 10),
-                        endDate: new Date(response.data.endDate).toISOString().slice(0, 10),
+                        startDate: new Date(response.data.startDate).toISOString().split('T')[0],
+                        endDate: new Date(response.data.endDate).toISOString().split('T')[0],
                         price: response.data.price,
                     });
                     if (response.data.image) {
-                        setPreview(response.data.image); // Set preview if there's an existing image
+                        setPreview(response.data.image);
                     }
                 })
                 .catch((error) => console.error('Error fetching vacation data', error));
+        } else {
+            // Preselect today's date for new vacations
+            setVacation(prev => ({
+                ...prev,
+                startDate: today,
+                endDate: today
+            }));
         }
-    }, [id]);
+    }, [id, today]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -87,8 +95,8 @@ const VacationForm: React.FC = () => {
     };
 
     const validateForm = () => {
-        if (vacation.endDate <= vacation.startDate) {
-            setError('End date must be later than the start date.');
+        if (vacation.endDate < vacation.startDate) {
+            setError('End date must be later than or equal to the start date.');
             return false;
         }
         const price = parseFloat(vacation.price);
@@ -133,6 +141,7 @@ const VacationForm: React.FC = () => {
                         name="startDate" 
                         value={vacation.startDate} 
                         onChange={handleInputChange} 
+                        min={today}
                         required 
                     />
                     
@@ -143,6 +152,7 @@ const VacationForm: React.FC = () => {
                         name="endDate" 
                         value={vacation.endDate} 
                         onChange={handleInputChange} 
+                        min={vacation.startDate || today}
                         required 
                     />
                     
