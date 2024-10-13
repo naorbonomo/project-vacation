@@ -30,7 +30,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const itemsPerPage = 9;
+    const itemsPerPage = 10;
     const navigate = useNavigate();
 
     const [showOnlyFollowed, setShowOnlyFollowed] = useState<boolean>(false);
@@ -205,23 +205,30 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                                         alt={vacation.id.destination}
                                         className={`vacation-image ${user?.role === 'Admin' ? 'bw-image' : ''}`}
                                     />
-                                    <div className="overlay-buttons">
+                                    <div className="overlay-content">
                                         {user.role === 'Admin' ? (
                                             <>
-                                                <button onClick={() => handleEdit(vacation.id.vacation_id)} className="edit">Edit</button>
-                                                <button onClick={() => handleDelete(vacation.id.vacation_id)} className="delete">Delete</button>
+                                                <div className="likes-count">
+                                                    <Heart size={24} />
+                                                    <span>{vacation.followersCount}</span>
+                                                </div>
+                                                <div className="admin-actions">
+                                                    <button onClick={() => handleEdit(vacation.id.vacation_id)} className="edit">Edit</button>
+                                                    <button onClick={() => handleDelete(vacation.id.vacation_id)} className="delete">Delete</button>
+                                                </div>
                                             </>
                                         ) : (
-                                            <button
+                                            <div 
                                                 onClick={() => handleLike(vacation.id.vacation_id)}
-                                                className={`like-button ${followedVacations.includes(vacation.id.vacation_id) ? 'liked' : ''}`}
+                                                className={`likes-count like-button ${followedVacations.includes(vacation.id.vacation_id) ? 'liked' : ''}`}
                                             >
                                                 <Heart 
                                                     size={24} 
                                                     fill={followedVacations.includes(vacation.id.vacation_id) ? "red" : "none"}
                                                     stroke={followedVacations.includes(vacation.id.vacation_id) ? "red" : "currentColor"}
                                                 />
-                                            </button>
+                                                <span>{vacation.followersCount}</span>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -231,7 +238,6 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                                     <p>Start Date: {new Date(vacation.id.start_date).toLocaleDateString()}</p>
                                     <p>End Date: {new Date(vacation.id.end_date).toLocaleDateString()}</p>
                                     <p className="price">Price: ${parseFloat(vacation.id.price).toFixed(2)}</p>
-                                    <p className="followers">Likes: {vacation.followersCount}</p>
                                 </div>
                             </div>
                         ))}

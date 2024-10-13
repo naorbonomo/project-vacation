@@ -53,52 +53,73 @@
     filter: grayscale(70%);
 }
 
-.overlay-buttons {
+.overlay-content {
     position: absolute;
     top: 10px;
+    left: 10px;
     right: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.likes-count {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    padding: 5px 10px;
+    font-weight: bold;
+    color: #333;
+}
+
+.likes-count svg {
+    margin-right: 5px;
+}
+
+.admin-actions {
     display: flex;
     gap: 10px;
 }
 
-.edit, .delete, .like-button {
-    padding: 8px;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s;
-}
-
 .edit, .delete {
-    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
     font-size: 12px;
+    color: white;
+    transition: background-color 0.3s;
 }
 
 .edit {
     background-color: #007bff;
 }
 
+.edit:hover {
+    background-color: #0056b3;
+}
+
 .delete {
     background-color: #dc3545;
 }
 
+.delete:hover {
+    background-color: #c82333;
+}
+
 .like-button {
-    background-color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s;
 }
 
 .like-button:hover {
     transform: scale(1.1);
 }
 
-.liked {
-    background-color: #ffebee;
-}
-
-.vacation-card:hover .vacation-image {
-    transform: scale(1.05);
+.like-button.liked svg {
+    fill: red;
+    stroke: red;
 }
 
 .vacation-details {
@@ -126,11 +147,6 @@
 .price {
     font-weight: bold;
     color: #28a745;
-}
-
-.followers {
-    font-size: 0.9rem;
-    color: #6c757d;
 }
 
 .filter-options {
@@ -203,4 +219,42 @@
 
 .error {
     color: #dc3545;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .vacation-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+
+    .vacation-list h1 {
+        font-size: 1.5rem;
+    }
+
+    .filter-options {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .custom-checkbox {
+        margin-right: 20px;
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .vacation-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .vacation-list {
+        padding: 10px;
+        margin-top: 100px;
+    }
+
+    .pagination-controls button {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
 }
