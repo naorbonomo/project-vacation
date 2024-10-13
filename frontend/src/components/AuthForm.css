@@ -55,3 +55,31 @@
     color: #666;
     font-size: 0.9rem;
 }
+.error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.input-error {
+    border: 1px solid red;
+}
+.error-tooltip {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px;
+    position: absolute;
+    background-color: #f8d7da;
+    border: 1px solid #f5c2c7;
+    border-radius: 4px;
+    padding: 5px;
+    width: 200px;
+    left: 0;
+    top: 40px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Positioning for error message */
+.input-group {
+    position: relative;
+}

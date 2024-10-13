@@ -1,7 +1,7 @@
 // backend/src/services/authService.ts
 
 import runQuery from "../DB/dal";
-import { UnauthorizedError } from "../models/exceptions";
+import { UnauthorizedError, ValidationError } from "../models/exceptions";
 import UserModel from "../models/userModel";
 import { createToken, encryptPassword, validatePassword } from "../utils/authUtils";
 
@@ -14,7 +14,15 @@ export async function createUser(user: UserModel) {
              VALUES (?, ?, ?, ?);`;
     const params = [user.first_name, user.last_name, user.email, hashedPassword];
 
-    await runQuery(q, params);
+    try {
+        await runQuery(q, params);
+    } catch (error: any) {
+        if (error.code === 'ER_DUP_ENTRY') {
+            throw new ValidationError('User already exists with this email');
+        }
+        throw error; // Re-throw any other errors
+    }
+    
 
     q = `SELECT user_id FROM users WHERE email=?;`;
     const res = await runQuery(q, [user.email]);
