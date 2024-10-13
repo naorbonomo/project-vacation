@@ -51,7 +51,9 @@ export async function createVacation(vacationData: Partial<VacationModel>, file?
   
       try {
         await s3.putObject(uploadParams).promise();
-        imageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileName}`; // Fixed URL generation
+        // imageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileName}`; // Fixed URL generation
+        imageUrl = `https://s3.amazonaws.com/${process.env.AWS_S3_BUCKET_NAME}/${fileName}`;
+
     } catch (error) {
         console.error('Error uploading file to S3:', error);
         throw new Error('Failed to upload image');
@@ -153,7 +155,9 @@ export async function updateVacation(id: number, vacationData: Partial<VacationM
   
       try {
         await s3.putObject(uploadParams).promise();
-        const newImageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileName}`;
+        // const newImageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileName}`;
+        const newImageUrl = `https://s3.amazonaws.com/${process.env.AWS_S3_BUCKET_NAME}/${fileName}`;
+
         
         // Add image_filename to update fields
         addUpdateField('image_filename', newImageUrl);
