@@ -4,25 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import './VacationList.css';
 import APP_CONFIG from '../utils/appconfig';
 import { followVacation, unfollowVacation, getFollowedVacationsByUser } from '../api/followAPI';
-import { deleteVacation } from '../api/vacationsAPI';
+import { deleteVacation, getVacationsWithFollowers } from '../api/vacationsAPI';
 import { Heart } from 'lucide-react';
-
-interface Vacation {
-    id: {
-        vacation_id: number;
-        destination: string;
-        description: string;
-        start_date: string;
-        end_date: string;
-        price: string;
-        image_filename: string;
-    },
-    imageUrl: string;
-    followersCount: number;
-    isFollowed: boolean;
-}
-
-type ApiResponse = Vacation[];
+import { Vacation } from '../types/vacationType';
 
 const VacationList: React.FC<{ user: any }> = ({ user }) => {
     const [vacations, setVacations] = useState<Vacation[]>([]);
@@ -43,8 +27,21 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
             setError(null);
 
             try {
-                const response: AxiosResponse<ApiResponse> = await axios.get(`${APP_CONFIG.API_BASE_URL}/api/vacations-with-followers`);
-                setVacations(response.data);
+                // const response: AxiosResponse<ApiResponse> = await axios.get(`${APP_CONFIG.API_BASE_URL}/api/vacations-with-followers`);
+                const data = await getVacationsWithFollowers();
+                const formattedData = data.map((v: any) => ({
+                    vacation_id: v.id.vacation_id,
+                    destination: v.id.destination,
+                    description: v.id.description,
+                    start_date: v.id.start_date,
+                    end_date: v.id.end_date,
+                    price: v.id.price,
+                    image_filename: v.id.image_filename,
+                    followersCount: v.id.followersCount,
+                  }));
+                console.log(formattedData);
+                
+                setVacations(formattedData);
             } catch (error) {
                 console.error('Error fetching vacations:', error);
                 setError('Failed to fetch vacations. Please try again later.');
@@ -77,7 +74,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                 await unfollowVacation(user.id, vacationId);
                 setFollowedVacations(followedVacations.filter(id => id !== vacationId));
                 setVacations(vacations.map(v =>
-                    v.id.vacation_id === vacationId
+                    v.vacation_id === vacationId
                         ? { ...v, followersCount: v.followersCount - 1 }
                         : v
                 ));
@@ -85,7 +82,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                 await followVacation(user.id, vacationId);
                 setFollowedVacations([...followedVacations, vacationId]);
                 setVacations(vacations.map(v =>
-                    v.id.vacation_id === vacationId
+                    v.vacation_id === vacationId
                         ? { ...v, followersCount: v.followersCount + 1 }
                         : v
                 ));
@@ -100,7 +97,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
         if (window.confirm('Are you sure you want to delete this vacation?')) {
             try {
                 await deleteVacation(id);
-                setVacations(vacations.filter(v => v.id.vacation_id !== id));
+                setVacations(vacations.filter(v => v.vacation_id !== id));
                 alert('Vacation deleted successfully');
             } catch (error) {
                 console.error('Error deleting vacation:', error);
@@ -114,11 +111,11 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
     };
 
     const filteredVacations = vacations.filter(vacation => {
-        const startDate = new Date(vacation.id.start_date);
-        const endDate = new Date(vacation.id.end_date);
+        const startDate = new Date(vacation.start_date);
+        const endDate = new Date(vacation.end_date);
         const now = new Date();
 
-        if (showOnlyFollowed && user.role !== 'Admin' && !followedVacations.includes(vacation.id.vacation_id)) {
+        if (showOnlyFollowed && user.role !== 'Admin' && !followedVacations.includes(vacation.vacation_id)) {
             return false;
         }
 
@@ -198,11 +195,11 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                 <>
                     <div className="vacation-grid">
                         {currentVacations.map((vacation) => (
-                            <div key={vacation.id.vacation_id} className="vacation-card">
+                            <div key={vacation.vacation_id} className="vacation-card">
                                 <div className="image-container">
                                     <img
-                                        src={vacation.id.image_filename}
-                                        alt={vacation.id.destination}
+                                        src={vacation.image_filename}
+                                        alt={vacation.destination}
                                         className={`vacation-image ${user?.role === 'Admin' ? 'bw-image' : ''}`}
                                     />
                                     <div className="overlay-content">
@@ -213,19 +210,19 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                                                     <span>{vacation.followersCount}</span>
                                                 </div>
                                                 <div className="admin-actions">
-                                                    <button onClick={() => handleEdit(vacation.id.vacation_id)} className="edit">Edit</button>
-                                                    <button onClick={() => handleDelete(vacation.id.vacation_id)} className="delete">Delete</button>
+                                                    <button onClick={() => handleEdit(vacation.vacation_id)} className="edit">Edit</button>
+                                                    <button onClick={() => handleDelete(vacation.vacation_id)} className="delete">Delete</button>
                                                 </div>
                                             </>
                                         ) : (
                                             <div 
-                                                onClick={() => handleLike(vacation.id.vacation_id)}
-                                                className={`likes-count like-button ${followedVacations.includes(vacation.id.vacation_id) ? 'liked' : ''}`}
+                                                onClick={() => handleLike(vacation.vacation_id)}
+                                                className={`likes-count like-button ${followedVacations.includes(vacation.vacation_id) ? 'liked' : ''}`}
                                             >
                                                 <Heart 
                                                     size={24} 
-                                                    fill={followedVacations.includes(vacation.id.vacation_id) ? "red" : "none"}
-                                                    stroke={followedVacations.includes(vacation.id.vacation_id) ? "red" : "currentColor"}
+                                                    fill={followedVacations.includes(vacation.vacation_id) ? "red" : "none"}
+                                                    stroke={followedVacations.includes(vacation.vacation_id) ? "red" : "currentColor"}
                                                 />
                                                 <span>{vacation.followersCount}</span>
                                             </div>
@@ -233,11 +230,11 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                                     </div>
                                 </div>
                                 <div className="vacation-details">
-                                    <h2>{vacation.id.destination}</h2>
-                                    <p className="description">{vacation.id.description}</p>
-                                    <p>Start Date: {new Date(vacation.id.start_date).toLocaleDateString()}</p>
-                                    <p>End Date: {new Date(vacation.id.end_date).toLocaleDateString()}</p>
-                                    <p className="price">Price: ${parseFloat(vacation.id.price).toFixed(2)}</p>
+                                    <h2>{vacation.destination}</h2>
+                                    <p className="description">{vacation.description}</p>
+                                    <p>Start Date: {new Date(vacation.start_date).toLocaleDateString()}</p>
+                                    <p>End Date: {new Date(vacation.end_date).toLocaleDateString()}</p>
+                                    <p className="price">Price: ${parseFloat(vacation.price).toFixed(2)}</p>
                                 </div>
                             </div>
                         ))}
