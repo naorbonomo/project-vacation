@@ -1,4 +1,6 @@
 /* frontend/src/components/VacationForm.css */
+
+
 .vacation-form-container {
     display: flex;
     justify-content: center;
@@ -13,8 +15,6 @@
         margin-top: 260px; /* Adjusts margin for smaller screens */
     }
 }
-
-
 
 .vacation-form {
     max-width: 400px;
@@ -72,4 +72,48 @@
     color: red;
     margin-bottom: 15px;
     text-align: center;
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.button-group button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.primary-button {
+    background-color: #007bff;
+    color: white;
+}
+
+.primary-button:hover {
+    background-color: #0056b3;
+}
+
+.secondary-button {
+    background-color: #6c757d;
+    color: white;
+    margin-top: 10px;
+}
+
+.secondary-button:hover {
+    background-color: #5a6268;
+}
+
+
+.vacation-form button.secondary-button {
+    background-color: #96989a;
+}
+
+.vacation-form button.secondary-button:hover {
+    background-color: #5a6268;
 }

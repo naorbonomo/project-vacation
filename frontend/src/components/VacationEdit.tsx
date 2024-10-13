@@ -53,7 +53,6 @@ const VacationEdit: React.FC = () => {
     loadVacation();
   }, [id]);
   
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setVacation({ ...vacation, [name]: value });
@@ -117,13 +116,16 @@ const VacationEdit: React.FC = () => {
     try {
       await updateVacation(id, formData);
       alert('Vacation updated successfully');
-      navigate('/');
+      navigate('/vacation-list');
     } catch (error) {
       console.error('Error updating vacation:', error);
       alert('Failed to update vacation. Please try again.');
     }
   };
-  
+
+  const handleCancel = () => {
+    navigate('/vacation-list');
+  };
 
   return (
     <div className="vacation-form-container">
@@ -164,7 +166,12 @@ const VacationEdit: React.FC = () => {
               />
             </div>
           )}
-          <button type="submit">Update Vacation</button>
+          <div className="button-group">
+            <button type="submit" className="primary-button">Update Vacation</button>
+          </div>
+          <div className="button-group">
+            <button type="button" onClick={handleCancel} className="secondary-button">Cancel</button>
+          </div>
         </form>
       </div>
     </div>

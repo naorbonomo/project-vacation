@@ -87,7 +87,7 @@ const VacationForm: React.FC = () => {
                 await axios.post(`${APP_CONFIG.API_BASE_URL}/api/vacations`, formData);
                 alert('Vacation added successfully');
             }
-            navigate('/');
+            navigate('/vacation-list');
         } catch (error) {
             console.error('Error saving vacation:', error);
             alert('Failed to save vacation. Please try again.');
@@ -106,6 +106,10 @@ const VacationForm: React.FC = () => {
         }
         setError(null);
         return true;
+    };
+
+    const handleCancel = () => {
+        navigate('/vacation-list');
     };
 
     return (
@@ -183,7 +187,16 @@ const VacationForm: React.FC = () => {
                         </div>
                     )}
                     
-                    <button type="submit">{isEdit ? 'Update Vacation' : 'Add Vacation'}</button>
+                    <div className="button-group">
+                        <button type="submit" className="primary-button">
+                            {isEdit ? 'Update Vacation' : 'Add Vacation'}
+                        </button>
+                    </div>
+                    <div className="button-group">
+                        <button type="button" onClick={handleCancel} className="secondary-button">
+                            Cancel
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
