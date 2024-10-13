@@ -3,9 +3,18 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 80vh; /* Centers the card vertically */
+    min-height: 80vh; /* Centers the form vertically */
     padding: 20px;
+    margin-top: 240px; /* Dropped further below the navbar */
 }
+
+@media (max-width: 768px) {
+    .vacation-form-container {
+        margin-top: 260px; /* Adjusts margin for smaller screens */
+    }
+}
+
+
 
 .vacation-form {
     max-width: 400px;

@@ -3,8 +3,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 80vh; /* Centers the card vertically */
+    min-height: 80vh;
     padding: 20px;
+    margin-top: 200px; /* Pushes content below the navbar */
+}
+@media (max-width: 768px) {
+    .auth-form-container {
+        margin-top: 220px; /* Adjusts the margin for smaller screens */
+    }
 }
 
 .auth-form {

@@ -6,7 +6,15 @@
     min-height: 80vh;
     background-color: #f0f2f5;
     padding: 20px;
+    margin-top: 240px; /* Dropped further below the navbar */
 }
+
+@media (max-width: 768px) {
+    .vacation-report-container {
+        margin-top: 260px; /* Adjusts margin for smaller screens */
+    }
+}
+
 
 .vacation-report-card {
     background-color: #ffffff;

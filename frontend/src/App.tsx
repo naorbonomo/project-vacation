@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, Navigate  } from 'react-router-dom';
 import axios from 'axios';
 import VacationList from './components/VacationList';
 import Login from './components/Login';
@@ -57,53 +57,68 @@ const App: React.FC = () => {
   return (
     <Router>
       <div>
-        <nav className={user?.role === 'Admin' ? 'admin-nav' : 'user-nav'}>
-          <div className="brand">
-            <Link to="/" className="brand-link">NaorBonomo.com</Link>
-            <div className="nav-links">
-              <Link to="/">Home</Link>
-              <Link to="/vacation-list">Vacations</Link> {/* Always visible to all users */}
-              {user?.role === 'Admin' && (
-                <>
-                  <Link to="/vacation-form">Add Vacation</Link>
-                  <Link to="/vacation-report">Vacation Report</Link>
-                </>
-              )}
-            </div>
-          </div>
-          <div className="auth-links">
-            {!user ? (
-              <>
-                <Link to="/login">Login</Link>
-                <Link to="/register">Register</Link>
-              </>
-            ) : (
-              <>
-                <span>
-                  {user.role === 'Admin' ? (
-                    <>Hello Administrator, {user.first_name} {user.last_name}</>
-                  ) : (
-                    <>Hello, {user.first_name} {user.last_name}</>
-                  )}
-                </span>
-                <button onClick={logout}>Logout</button>
-              </>
-            )}
-          </div>
-        </nav>
+      <nav className={user?.role === 'Admin' ? 'admin-nav' : 'user-nav'}>
+  <div className="brand">
+    <Link to="/" className="brand-link">NaorBonomo.com</Link>
+    <div className="nav-links">
+      {/* Only show Vacations button if user is logged in */}
+      {user && (
+        <>
+          <Link to="/vacation-list">Vacations</Link> {/* Visible to all logged-in users */}
+          {user?.role === 'Admin' && (
+            <>
+              <Link to="/vacation-form">Add Vacation</Link>
+              <Link to="/vacation-report">Vacation Report</Link>
+            </>
+          )}
+        </>
+      )}
+    </div>
+  </div>
+  <div className="auth-links">
+    {!user ? (
+      <>
+        <Link to="/login">Login</Link>
+        <Link to="/register">Register</Link>
+      </>
+    ) : (
+      <>
+        <span>
+          {user.role === 'Admin' ? (
+            <>Hello Administrator, {user.first_name} {user.last_name}</>
+          ) : (
+            <>Hello, {user.first_name} {user.last_name}</>
+          )}
+        </span>
+        <button onClick={logout}>Logout</button>
+      </>
+    )}
+  </div>
+</nav>
+
   
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route
-            path="/vacation-list"
-            element={
-              isAuthenticated && user?.id ? (
-                <VacationList user={user} />
-              ) : (
-                <div>Please log in to see vacations.</div>
-              )
-            }
-          />
+<Routes>
+  {/* Redirect logged-in users to VacationList */}
+  <Route
+    path="/"
+    element={
+      isAuthenticated && user?.id ? (
+        <Navigate to="/vacation-list" />
+      ) : (
+        <LandingPage />
+      )
+    }
+  />
+  <Route
+    path="/vacation-list"
+    element={
+      isAuthenticated && user?.id ? (
+        <VacationList user={user} />
+      ) : (
+        <div>Please log in to see vacations.</div>
+      )
+    }
+  />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/vacation-form" element={<VacationForm />} />
