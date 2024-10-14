@@ -252,4 +252,32 @@ export async function getVacationsWithFollowers(): Promise<VacationModel[]> {
         return vacation;
     });
 }
+export async function getVacationByDestination(destination: string): Promise<VacationModel> {
+    console.log(`Fetching vacation with destination: ${destination}`);
+
+    const q = 'SELECT * FROM vacations WHERE destination = ? LIMIT 1';
+    const params = [destination];
+
+    try {
+        const result = await runQuery(q, params) as any[];
+
+        if (result.length === 0) {
+            throw new NotFoundError(`Vacation with destination ${destination} not found`);
+        }
+
+        console.log(`Vacation with destination ${destination} fetched successfully`);
+        const vacation = new VacationModel(result[0]);
+        vacation.image_filename = vacation.image_filename
+            ? `https://s3.amazonaws.com/${process.env.AWS_S3_BUCKET_NAME}/${vacation.image_filename}`
+            : ''; // Generate S3 URL
+
+        return vacation;
+    } catch (error) {
+        console.error('Error fetching vacation:', error);
+        if (error instanceof NotFoundError) {
+            throw error;
+        }
+        throw new Error(`Failed to fetch vacation: ${(error as Error).message}`);
+    }
+}
 

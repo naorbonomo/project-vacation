@@ -1,10 +1,12 @@
+// backend/src/services/authClientAPI.ts
+
 import axios from "axios";
 import  appConfig  from "../utils/appconfig";
 import { parseJwt } from "../utils/helpers";
 
 
 export async function register(first_name: string, last_name: string, email: string, password: string) {
-    const url = appConfig.API_BASE_URL + "/register";
+    const url = appConfig.API_BASE_URL + "/api/register";
 
     const data = {
         first_name,

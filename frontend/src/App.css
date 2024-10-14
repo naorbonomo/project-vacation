@@ -103,3 +103,37 @@ nav a:hover, nav button:hover {
     margin-top: 200px;
     padding: 20px;
 }
+.vacation-recommendation {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    margin-top: 200px;
+}
+
+.vacation-recommendation input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.vacation-recommendation button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.vacation-recommendation button:hover {
+    background-color: #0056b3;
+}
+
+.recommendation {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}

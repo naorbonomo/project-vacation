@@ -33,3 +33,13 @@ export async function updateVacation(id: string, formData: FormData): Promise<vo
         headers: { 'Content-Type': 'multipart/form-data' },
     });
 }
+// Send vacation preferences to the Groq API and get a recommendation
+export async function getVacationRecommendation(preferences: string): Promise<string> {
+    const response = await axios.post(`${APP_CONFIG.API_BASE_URL}/api/vacation-recommendation`, { preferences });
+    return response.data.recommendation;
+}
+// Fetch a vacation by destination (or ID, depending on your structure)
+export async function fetchVacationByDestination(destination: string): Promise<Vacation> {
+    const response = await axios.get(`${APP_CONFIG.API_BASE_URL}/api/vacations/destination/${destination}`);
+    return response.data;  // Assuming you return the vacation data including image_filename
+}

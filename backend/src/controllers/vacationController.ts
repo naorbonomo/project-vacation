@@ -7,7 +7,7 @@ import multer from 'multer';
 
 import { StatusCode } from "../models/statusEnum";
 import { appConfig } from "../utils/appConfig"; 
-import { createVacation, deleteVacation, getAllVacations, getVacationById, getVacationsWithFollowers, updateVacation } from "../services/vacationService";
+import { createVacation, deleteVacation, getAllVacations, getVacationByDestination, getVacationById, getVacationsWithFollowers, updateVacation } from "../services/vacationService";
 import { uploadFileToS3 } from "../utils/s3Utils";
 
 export const vacationRouter = express.Router();
@@ -152,5 +152,17 @@ vacationRouter.get(appConfig.routePrefix + "/vacations-with-followers", async (r
     } catch (error) {
         console.error('Error fetching vacations with followers:', error);
         res.status(StatusCode.ServerError).send("Error. Please try again later");
+    }
+});
+
+// Backend route to fetch vacation by destination
+vacationRouter.get('/api/vacations/destination/:destination', async (req, res) => {
+    try {
+        const destination = req.params.destination;
+        const vacation = await getVacationByDestination(destination);  // Query DB by destination
+        res.status(200).json(vacation);
+    } catch (error) {
+        console.error('Error fetching vacation:', error);
+        res.status(500).send('Error fetching vacation');
     }
 });

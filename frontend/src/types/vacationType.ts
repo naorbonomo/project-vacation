@@ -9,5 +9,6 @@ export type Vacation = {
     end_date: string;
     price: string;
     image_filename: string;
-    followersCount: number; // New field for the follower count
+    followersCount: number; 
 }
+//TODO: add id{} to remove map in components 

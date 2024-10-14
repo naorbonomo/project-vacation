@@ -2,21 +2,26 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
+// define the shape of our auth context
 interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
-  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsAdmin: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsAuthenticated: (isAuthenticated: boolean) => void;  // explicitly define the function
+  setIsAdmin: (isAdmin: boolean) => void;  
   login: (token: string, isAdmin: boolean | undefined) => void;
   logout: () => void;
 }
 
+// create the context with an initial undefined value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// auth provider component
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => { //anything that can be rendered in a react component.
+  // state for authentication status and admin status
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
+  // effect to check for existing token on component mount
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedIsAdmin = localStorage.getItem('isAdmin');
@@ -26,6 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  // function to handle user login
   const login = (token: string, isAdmin: boolean | undefined) => {
     if (token) {
       localStorage.setItem('token', token);
@@ -37,6 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // function to handle user logout
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('isAdmin');
@@ -44,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAdmin(false);
   };
 
+  // provide the auth context to child components
   return (
     <AuthContext.Provider value={{ isAuthenticated, isAdmin, setIsAuthenticated, setIsAdmin, login, logout }}>
       {children}
@@ -51,6 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

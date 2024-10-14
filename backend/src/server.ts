@@ -12,6 +12,7 @@ import catchAll from './middleware/catchAll';
 import { authRoutes } from "./controllers/authControllers";
 import { followRouter } from './controllers/followController';
 import { userRouter } from './controllers/userController';
+import { vacationRecommendationRouter } from './controllers/vacationRecommendationController';
 
 const server = express();
 
@@ -30,7 +31,7 @@ server.use("/", vacationRouter);
 server.use("/", authRoutes)
 server.use("/", followRouter); // Add followRouter to handle follow-related routes
 server.use('/', userRouter);
-
+server.use('/', vacationRecommendationRouter);
 server.use(catchAll);
 // console.log(`Listening on http://localhost:${appConfig.port}`);
 
