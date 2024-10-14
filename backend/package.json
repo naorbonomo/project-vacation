@@ -9,7 +9,7 @@
         "build": "tsc",
         "postbuild": "sh ./deploy-and-restart.sh || .\\deploy-and-restart.bat",
         "watch": "tsc -w",
-        "test": "jest"
+        "test": "cross-env NODE_ENV=test jest"
     },
     "keywords": [],
     "author": "",
@@ -45,6 +45,7 @@
         "@types/supertest": "^6.0.2",
         "@types/uuid": "^10.0.0",
         "babel-jest": "^29.7.0",
+        "cross-env": "^7.0.3",
         "jest": "^29.7.0",
         "nodemon": "^3.1.4",
         "supertest": "^7.0.0",

@@ -66,11 +66,12 @@ class ProdAppConfig extends BaseAppConfig {
 export const appConfig = (() => {
     switch (process.env.NODE_ENV) {
         case "production":
+        case "test":
             console.log(`ENV IS : ${process.env.NODE_ENV}`)
             return new ProdAppConfig();
-            case "development":
-                console.log(`ENV IS : ${process.env.NODE_ENV}`)
-                return new DevAppConfig();
+        case "development":
+            console.log(`ENV IS : ${process.env.NODE_ENV}`)
+            return new DevAppConfig();
         default:
             throw new Error(`Unknown NODE_ENV: ${process.env.NODE_ENV}`);
     }
