@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import APP_CONFIG from '../utils/appconfig';
 import './VacationForm.css';
+import { useToast } from '../context/ToastContext';
 
 const VacationForm: React.FC = () => {
     const [vacation, setVacation] = useState({
@@ -18,6 +19,7 @@ const VacationForm: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
     const { id } = useParams();
+    const { showToast } = useToast();
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -82,15 +84,15 @@ const VacationForm: React.FC = () => {
         try {
             if (isEdit) {
                 await axios.put(`${APP_CONFIG.API_BASE_URL}/api/vacations/${id}`, formData);
-                alert('Vacation updated successfully');
+                showToast('Vacation updated successfully', 'success');
             } else {
                 await axios.post(`${APP_CONFIG.API_BASE_URL}/api/vacations`, formData);
-                alert('Vacation added successfully');
+                showToast('Vacation added successfully', 'success');
             }
             navigate('/vacation-list');
         } catch (error) {
             console.error('Error saving vacation:', error);
-            alert('Failed to save vacation. Please try again.');
+            showToast('Failed to save vacation. Please try again.', 'error');
         }
     };
 

@@ -12,6 +12,7 @@ import LandingPage from './components/LandingPage';
 import APP_CONFIG from './utils/appconfig';
 import './App.css'; 
 import VacationRecommendation from './components/VacationRecommendation';
+import { ToastProvider } from './context/ToastContext';
 
 const App: React.FC = () => {
   
@@ -63,86 +64,88 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <div>
-      {/* navigation bar with conditional rendering based on user role */}
-      <nav className={user?.role === 'Admin' ? 'admin-nav' : 'user-nav'}>
-        <div className="brand">
-          <Link to="/" className="brand-link">NaorBonomo.com</Link>
-          <div className="nav-links">
-            {/* only show vacations button if user is logged in */}
-            {user && (
-              <>
-                <Link to="/vacation-list">Vacations</Link> {/* visible to all logged-in users */}
-                <Link to="/vacation-recommendation">Find Vacation</Link> 
+      <ToastProvider>
+        <div>
+        {/* navigation bar with conditional rendering based on user role */}
+        <nav className={user?.role === 'Admin' ? 'admin-nav' : 'user-nav'}>
+          <div className="brand">
+            <Link to="/" className="brand-link">NaorBonomo.com</Link>
+            <div className="nav-links">
+              {/* only show vacations button if user is logged in */}
+              {user && (
+                <>
+                  <Link to="/vacation-list">Vacations</Link> {/* visible to all logged-in users */}
+                  <Link to="/vacation-recommendation">Find Vacation</Link> 
 
-                {user?.role === 'Admin' && (
-                  <>
-                    <Link to="/vacation-form">Add Vacation</Link>
-                    <Link to="/vacation-report">Vacation Report</Link>
-                  </>
-                )}
+                  {user?.role === 'Admin' && (
+                    <>
+                      <Link to="/vacation-form">Add Vacation</Link>
+                      <Link to="/vacation-report">Vacation Report</Link>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+          <div className="auth-links">
+            {/* conditional rendering of login/register or user info and logout */}
+            {!user ? (
+              <>
+                <Link to="/login">Login</Link>
+                <Link to="/register">Register</Link>
+              </>
+            ) : (
+              <>
+                <span>
+                  {user.role === 'Admin' ? (
+                    <>Hello Administrator, {user.first_name} {user.last_name}</>
+                  ) : (
+                    <>Hello, {user.first_name} {user.last_name}</>
+                  )}
+                </span>
+                <button onClick={logout}>Logout</button>
               </>
             )}
           </div>
-        </div>
-        <div className="auth-links">
-          {/* conditional rendering of login/register or user info and logout */}
-          {!user ? (
-            <>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
-            </>
-          ) : (
-            <>
-              <span>
-                {user.role === 'Admin' ? (
-                  <>Hello Administrator, {user.first_name} {user.last_name}</>
-                ) : (
-                  <>Hello, {user.first_name} {user.last_name}</>
-                )}
-              </span>
-              <button onClick={logout}>Logout</button>
-            </>
+        </nav>
+
+        {/* route definitions */}
+        <Routes>
+          {/* redirect logged-in users to VacationList */}
+          <Route
+            path="/"
+            element={
+              isAuthenticated && user?.id ? (
+                <Navigate to="/vacation-list" />
+              ) : (
+                <LandingPage />
+              )
+            }
+          />
+          <Route
+            path="/vacation-list"
+            element={
+              isAuthenticated && user?.id ? (
+                <VacationList user={user} />
+              ) : (
+                <div>Please log in to see vacations.</div>
+              )
+            }
+          />
+          <Route path="/login" element={<Login setUser={setUser} />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/vacation-form" element={<VacationForm />} />
+          <Route path="/vacation-form/:id" element={<VacationForm />} />
+          <Route path="/vacation-edit/:id" element={<VacationEdit />} />
+          {/* only render vacation report route for admin users */}
+          {user?.role === 'Admin' && (
+            <Route path="/vacation-report" element={<VacationReport />} />
           )}
+            <Route path="/vacation-recommendation" element={<VacationRecommendation />} />
+
+        </Routes>
         </div>
-      </nav>
-
-      {/* route definitions */}
-      <Routes>
-        {/* redirect logged-in users to VacationList */}
-        <Route
-          path="/"
-          element={
-            isAuthenticated && user?.id ? (
-              <Navigate to="/vacation-list" />
-            ) : (
-              <LandingPage />
-            )
-          }
-        />
-        <Route
-          path="/vacation-list"
-          element={
-            isAuthenticated && user?.id ? (
-              <VacationList user={user} />
-            ) : (
-              <div>Please log in to see vacations.</div>
-            )
-          }
-        />
-        <Route path="/login" element={<Login setUser={setUser} />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/vacation-form" element={<VacationForm />} />
-        <Route path="/vacation-form/:id" element={<VacationForm />} />
-        <Route path="/vacation-edit/:id" element={<VacationEdit />} />
-        {/* only render vacation report route for admin users */}
-        {user?.role === 'Admin' && (
-          <Route path="/vacation-report" element={<VacationReport />} />
-        )}
-          <Route path="/vacation-recommendation" element={<VacationRecommendation />} />
-
-      </Routes>
-      </div>
+      </ToastProvider>
     </Router>
   );
 };

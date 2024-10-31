@@ -3,20 +3,22 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import APP_CONFIG from '../utils/appconfig';
 import './AuthForm.css';
+import { useToast } from '../context/ToastContext';
 
 const Register: React.FC = () => {
     const [first_name, setFirst_name] = useState('');
     const [last_name, setLast_name] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [errorMessage, setErrorMessage] = useState(''); // State for error messages
-    const [emailError, setEmailError] = useState(false); // Email error state
+    const [errorMessage, setErrorMessage] = useState('');
+    const [emailError, setEmailError] = useState(false);
     const navigate = useNavigate();
+    const { showToast } = useToast();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMessage('');
-        setEmailError(false); // Reset email error state before each submission
+        setEmailError(false);
 
         try {
             await axios.post(`${APP_CONFIG.API_BASE_URL}/api/register`, {
@@ -25,24 +27,26 @@ const Register: React.FC = () => {
                 email,
                 password,
             });
-            alert('Registration successful! Please log in.');
+            showToast('Registration successful! Please log in.', 'success');
             navigate('/login');
         } catch (error: any) {
             console.error('Error details:', error.response);
             if (error.response && error.response.data) {
                 setErrorMessage(error.response.data);
                 if (error.response.data.includes('User already exists')) {
-                    setEmailError(true); // Trigger email error state
+                    setEmailError(true);
+                    showToast('User already exists with this email', 'error');
                 }
             } else {
                 setErrorMessage('Registration failed. Please try again.');
+                showToast('Registration failed. Please try again.', 'error');
             }
         }
     };
 
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(e.target.value);
-        setEmailError(false); // Reset the error state when the user starts typing
+        setEmailError(false);
     };
 
     return (
@@ -69,9 +73,9 @@ const Register: React.FC = () => {
                             type="email" 
                             placeholder="Email" 
                             value={email} 
-                            onChange={handleEmailChange} // Call the updated onChange handler
+                            onChange={handleEmailChange}
                             required 
-                            className={emailError ? 'input-error' : ''} // Apply error class conditionally
+                            className={emailError ? 'input-error' : ''}
                         />
                         {emailError && <span className="error-message">User already exists with this email</span>}
                     </div>

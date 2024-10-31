@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import APP_CONFIG from '../utils/appconfig';
 import './VacationForm.css';
 import { fetchVacation, updateVacation } from '../api/vacationsAPI';
+import { useToast } from '../context/ToastContext';
 
 const VacationEdit: React.FC = () => {
   const [vacation, setVacation] = useState({
@@ -20,6 +21,7 @@ const VacationEdit: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const { id } = useParams();
+  const { showToast } = useToast();
 
   useEffect(() => {
     const loadVacation = async () => {
@@ -108,18 +110,13 @@ const VacationEdit: React.FC = () => {
       formData.append('image', image);
     }
   
-    console.log('Form data entries:');
-    formData.forEach((value, key) => {
-      console.log(`${key}: ${value}`);
-    });
-  
     try {
       await updateVacation(id, formData);
-      alert('Vacation updated successfully');
+      showToast('Vacation updated successfully', 'success');
       navigate('/vacation-list');
     } catch (error) {
       console.error('Error updating vacation:', error);
-      alert('Failed to update vacation. Please try again.');
+      showToast('Failed to update vacation. Please try again.', 'error');
     }
   };
 

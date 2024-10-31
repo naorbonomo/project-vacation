@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { login } from '../api/authClientAPI';
 import { useNavigate } from 'react-router-dom';
 import './AuthForm.css'; // Ensure this import is here
+import { ToastProvider, useToast } from '../context/ToastContext';
 
 type Props = {
     setUser: (user: any) => void;
@@ -12,6 +12,7 @@ const Login: React.FC<Props> = ({ setUser }) => {
     const [email, setEmail] = React.useState<string>('');
     const [password, setPassword] = React.useState<string>('');
     const navigate = useNavigate();
+    const { showToast } = useToast();
 
     const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -21,14 +22,14 @@ const Login: React.FC<Props> = ({ setUser }) => {
             if (user && user.userWithoutPassword) {
                 localStorage.setItem('user', JSON.stringify(user.userWithoutPassword));
                 setUser(user.userWithoutPassword);
-                alert(`Hello, ${user.userWithoutPassword.first_name}`);
+                showToast(`Hello, ${user.userWithoutPassword.first_name}`, 'success');
                 navigate('/');
             } else {
-                alert('Login failed, no user data found.');
+                showToast('Login failed, no user data found.', 'error');
             }
         } catch (error) {
             console.error('Login error:', error);
-            alert('Login failed. Please try again.');
+            showToast('Login failed. Please try again.', 'error');
         }
     };
 

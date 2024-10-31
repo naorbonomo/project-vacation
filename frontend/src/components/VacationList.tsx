@@ -7,6 +7,7 @@ import { followVacation, unfollowVacation, getFollowedVacationsByUser } from '..
 import { deleteVacation, getVacationsWithFollowers } from '../api/vacationsAPI';
 import { Heart } from 'lucide-react';
 import { Vacation } from '../types/vacationType';
+import { useToast } from '../context/ToastContext';
 
 const VacationList: React.FC<{ user: any }> = ({ user }) => {
     const [vacations, setVacations] = useState<Vacation[]>([]);
@@ -20,6 +21,8 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
     const [showOnlyFollowed, setShowOnlyFollowed] = useState<boolean>(false);
     const [showOnlyFuture, setShowOnlyFuture] = useState<boolean>(false);
     const [showOnlyActive, setShowOnlyActive] = useState<boolean>(false);
+
+    const { showToast } = useToast();
 
     useEffect(() => {
         const fetchVacations = async () => {
@@ -78,6 +81,7 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                         ? { ...v, followersCount: v.followersCount - 1 }
                         : v
                 ));
+                showToast('Vacation removed from favorites', 'info');
             } else {
                 await followVacation(user.id, vacationId);
                 setFollowedVacations([...followedVacations, vacationId]);
@@ -86,10 +90,11 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
                         ? { ...v, followersCount: v.followersCount + 1 }
                         : v
                 ));
+                showToast('Vacation added to favorites', 'success');
             }
         } catch (error) {
             console.error('Error toggling vacation like:', error);
-            alert('Failed to update vacation like status. Please try again later.');
+            showToast('Failed to update vacation like status', 'error');
         }
     };
 
@@ -98,10 +103,10 @@ const VacationList: React.FC<{ user: any }> = ({ user }) => {
             try {
                 await deleteVacation(id);
                 setVacations(vacations.filter(v => v.vacation_id !== id));
-                alert('Vacation deleted successfully');
+                showToast('Vacation deleted successfully', 'success');
             } catch (error) {
                 console.error('Error deleting vacation:', error);
-                alert('Failed to delete vacation. Please try again later.');
+                showToast('Failed to delete vacation', 'error');
             }
         }
     };
