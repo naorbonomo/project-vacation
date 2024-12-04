@@ -13,6 +13,7 @@ import { authRoutes } from "./controllers/authControllers";
 import { followRouter } from './controllers/followController';
 import { userRouter } from './controllers/userController';
 import { vacationRecommendationRouter } from './controllers/vacationRecommendationController';
+import { llmRouter } from './controllers/llmController';
 
 const server = express();
 
@@ -32,6 +33,7 @@ server.use("/", authRoutes)
 server.use("/", followRouter); // Add followRouter to handle follow-related routes
 server.use('/', userRouter);
 server.use('/', vacationRecommendationRouter);
+server.use("/app", llmRouter);
 server.use(catchAll);
 // console.log(`Listening on http://localhost:${appConfig.port}`);
 
