@@ -8,7 +8,8 @@ import { StatusCode } from "../models/statusEnum";
 export const authRoutes = Router();
 
 
-authRoutes.post(appConfig.routePrefix + "/register", 
+authRoutes.post(appConfig.routePrefix + "/register",
+     
     async (req: Request, res: Response, next: NextFunction)=>{
         try {
           const user = new UserModel(req.body);

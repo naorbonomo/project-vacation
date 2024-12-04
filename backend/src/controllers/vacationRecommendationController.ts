@@ -17,6 +17,7 @@ vacationRecommendationRouter.post('/api/vacation-recommendation', async (req: Re
 
         // Format available vacations to pass to the Groq API
         const vacationList = vacations.map(vacation => ({
+            vacation_id: vacation.id,
             destination: vacation.destination,
             description: vacation.description,
             price: vacation.price,
@@ -28,7 +29,7 @@ vacationRecommendationRouter.post('/api/vacation-recommendation', async (req: Re
 
         // Send preferences and available vacations to the Groq API for a recommendation
         const recommendation = await findVacationPreferences(preferences, availableVacations);
-
+        console.log("Recommendation:", recommendation);
         res.status(200).json({ recommendation });
     } catch (error) {
         console.error('Error fetching vacation recommendation:', error);

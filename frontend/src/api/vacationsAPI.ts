@@ -43,3 +43,11 @@ export async function fetchVacationByDestination(destination: string): Promise<V
     const response = await axios.get(`${APP_CONFIG.API_BASE_URL}/api/vacations/destination/${destination}`);
     return response.data;  // Assuming you return the vacation data including image_filename
 }
+
+export const getVacationById = async (id: number) => {
+    const response = await fetch(`/api/vacations/${id}`);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+};

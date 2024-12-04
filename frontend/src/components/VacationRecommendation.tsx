@@ -1,44 +1,63 @@
 import React, { useState } from 'react';
-import { getVacationRecommendation } from '../api/vacationsAPI';
-import './VacationList.css'; // Reuse the existing CSS for the card styling
+import { getVacationRecommendation, getVacationById } from '../api/vacationsAPI';
+import { Heart } from 'lucide-react';
+import './VacationList.css';
 
 const VacationRecommendation: React.FC = () => {
     const [preferences, setPreferences] = useState('');
-    const [recommendation, setRecommendation] = useState<any>(null);  // Store the parsed recommendation
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setPreferences(e.target.value);
-    };
+    const [recommendation, setRecommendation] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (preferences.trim()) {
+            setIsLoading(true);
             try {
                 const result = await getVacationRecommendation(preferences);
-                try {
-                    // Attempt to parse the recommendation as JSON
-                    const parsedRecommendation = JSON.parse(result);
-                    setRecommendation(parsedRecommendation);
-                } catch (error) {
-                    // If not valid JSON, treat it as a raw string
-                    setRecommendation(result);
+                const parsedRecommendation = JSON.parse(result);
+                
+                // If we receive a vacation_id, fetch the vacation details
+                if (parsedRecommendation.vacation_id) {
+                    // Add this function to your vacationsAPI.ts
+                    const vacationDetails = await getVacationById(parsedRecommendation.vacation_id);
+                    setRecommendation({
+                        vacation_id: vacationDetails.vacation_id,
+                        destination: vacationDetails.destination,
+                        description: vacationDetails.description,
+                        start_date: vacationDetails.start_date,
+                        end_date: vacationDetails.end_date,
+                        price: vacationDetails.price,
+                        image_filename: vacationDetails.image_filename,
+                        followersCount: vacationDetails.followersCount || 0
+                    });
                 }
             } catch (error) {
                 console.error('Error fetching recommendation:', error);
+            } finally {
+                setIsLoading(false);
             }
         }
     };
 
     const renderRecommendationCard = (vacation: any) => {
         return (
-            <div key={vacation.destination} className="vacation-card">
+            <div key={vacation.vacation_id} className="vacation-card">
                 <div className="image-container">
-                    {/* Use a placeholder image or the vacation's image if available */}
                     <img
-                        src={vacation.image_filename || '/default-image.jpg'}
+                        src={vacation.image_filename || '/images/default-vacation.jpg'}
                         alt={vacation.destination}
                         className="vacation-image"
+                        onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/images/default-vacation.jpg';
+                        }}
                     />
+                    <div className="overlay-content">
+                        <div className="likes-count">
+                            <Heart size={24} />
+                            <span>{vacation.followersCount}</span>
+                        </div>
+                    </div>
                 </div>
                 <div className="vacation-details">
                     <h2>{vacation.destination}</h2>
@@ -51,24 +70,6 @@ const VacationRecommendation: React.FC = () => {
         );
     };
 
-    const renderRecommendations = () => {
-        if (!recommendation) return null;
-
-        if (typeof recommendation === 'string') {
-            return <p>{recommendation}</p>;
-        } else if (recommendation.options) {
-            // If there are multiple options, render them as vacation cards
-            return (
-                <div className="vacation-grid">
-                    {recommendation.options.map((option: any) => renderRecommendationCard(option))}
-                </div>
-            );
-        } else {
-            // Render a single vacation suggestion
-            return renderRecommendationCard(recommendation);
-        }
-    };
-
     return (
         <div className="vacation-recommendation">
             <h2>Find a Vacation</h2>
@@ -77,12 +78,14 @@ const VacationRecommendation: React.FC = () => {
                     type="text"
                     placeholder="Enter your vacation preferences"
                     value={preferences}
-                    onChange={handleInputChange}
+                    onChange={(e) => setPreferences(e.target.value)}
                 />
-                <button type="submit">Get Recommendation</button>
+                <button type="submit" disabled={isLoading}>
+                    {isLoading ? 'Getting Recommendation...' : 'Get Recommendation'}
+                </button>
             </form>
             <div className="recommendation">
-                {renderRecommendations()}
+                {recommendation && renderRecommendationCard(recommendation)}
             </div>
         </div>
     );

@@ -11,8 +11,9 @@ export async function findVacationPreferences(userInput: string, availableVacati
         User Preferences: ${userInput}
         Available Vacations:
         ${availableVacations}
-        Suggest the most suitable vacation for the user. Please return the response in JSON format with fields: "destination", "price", "start_date", "end_date", and "description".
-        do NOT ask for more information from the user.
+        Suggest the most suitable vacation for the user. 
+        do NOT add or ask for more information from the user.
+        Please return the response in JSON format example: {vacation_id: <number>}
 
     `;
 
@@ -27,6 +28,7 @@ export async function findVacationPreferences(userInput: string, availableVacati
 
     const responseContent = res.choices[0]?.message?.content;
 
+    console.log("Prompt:", prompt);  // Log the prompt
     console.log("Raw Response from Groq API:", responseContent);  // Log the raw response
 
     if (!responseContent) {
