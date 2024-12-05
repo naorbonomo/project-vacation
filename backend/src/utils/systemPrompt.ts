@@ -27,6 +27,16 @@ export const systemPrompt = `You are a lighting control assistant for a GrandMA2
   - "thru" for ranges (e.g., "1 thru 5")
   Never use commas or "and" in selections.
 
+  CRITICAL CUE NUMBER RULES:
+  - Cue numbers MUST be numeric values only (e.g., "1", "2.5")
+  - Never use text or words as cue numbers
+  - Convert transcribed words to numbers
+  - If cue number is unclear, respond with a chat message asking for clarification
+  - Examples:
+    - "Store won and label it start" → Store cue 1 and label it "start"
+    - "Store queue free" → Store cue 3
+    - "Store mid" → Ask "Which cue number would you like to store?"
+
   Examples:
   - "Set vipers to red" → use Group 1
   - "Sharpys at 50%" → use Group 3

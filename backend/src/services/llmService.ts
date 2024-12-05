@@ -25,36 +25,60 @@ abstract class BaseLLMProvider {
     protected async handleToolCalls(message: any) {
         console.log('Raw message from LLM:', JSON.stringify(message, null, 2));
         
+        // Helper to normalize chat responses
+        const normalizeChatResponse = (content: any): string => {
+            if (typeof content === 'string') {
+                try {
+                    // Check if it's already JSON
+                    const parsed = JSON.parse(content);
+                    if (parsed.chat) {
+                        return content; // Already in correct format
+                    }
+                } catch (e) {
+                    // Not JSON, continue with normalization
+                }
+            }
+            return JSON.stringify({ chat: content });
+        };
+
         if (!message.tool_calls || message.tool_calls.length === 0) {
             console.log('No tool calls found in message');
-            return JSON.stringify({ chat: message.content });
+            const content = message.content || 
+                           (typeof message === 'string' ? message : 
+                           (message.chat?.content || message));
+            return normalizeChatResponse(content);
         }
 
-        if (message.tool_calls.length === 1) {
-            const toolCall = message.tool_calls[0];
-            console.log('Processing single tool call:', toolCall);
+        const normalizeToolCall = (toolCall: any) => {
             const functionName = toolCall.function.name;
+            let functionArgs = toolCall.function.arguments || toolCall.function.parameters;
             
-            // Handle both string and object argument formats
-            let functionArgs;
-            if (typeof toolCall.function.arguments === 'string') {
-                functionArgs = JSON.parse(toolCall.function.arguments);
-            } else {
-                functionArgs = toolCall.function.arguments;
+            if (typeof functionArgs === 'string') {
+                functionArgs = JSON.parse(functionArgs);
             }
-            
-            return await this.toolExecutor.executeFunction(functionName, functionArgs);
-        }
 
-        const commands = message.tool_calls.map((toolCall: any) => ({
-            functionName: toolCall.function.name,
-            params: typeof toolCall.function.arguments === 'string' 
-                ? JSON.parse(toolCall.function.arguments)
-                : toolCall.function.arguments
-        }));
-        
-        console.log('Processing multiple tool calls:', commands);
-        return await this.toolExecutor.executeFunctions(commands);
+            return {
+                functionName,
+                params: functionArgs
+            };
+        };
+
+        try {
+            if (message.tool_calls.length === 1) {
+                const { functionName, params } = normalizeToolCall(message.tool_calls[0]);
+                console.log('Processing single tool call:', { functionName, params });
+                return await this.toolExecutor.executeFunction(functionName, params);
+            }
+
+            const commands = message.tool_calls.map(normalizeToolCall);
+            console.log('Processing multiple tool calls:', commands);
+            return await this.toolExecutor.executeFunctions(commands);
+        } catch (error) {
+            console.error('Error processing tool calls:', error);
+            return normalizeChatResponse(
+                "I apologize, but I encountered an error processing that command. Could you please rephrase it?"
+            );
+        }
     }
 }
 
@@ -93,7 +117,10 @@ class OpenAIProvider extends BaseLLMProvider {
     async processMessage(userInput: string, identifier: string): Promise<any> {
         const response = await this.client.chat.completions.create({
             messages: [
-                { role: "system", content: systemPrompt },
+                { 
+                    role: "system", 
+                    content: `${systemPrompt}\n\nWhen a user request requires multiple actions , please use multiple tool calls in a single response. For example, 'Store Q2 and label it beginning' should trigger both store_cue and label_control tools.` 
+                },
                 { role: "user", content: userInput }
             ],
             model: "gpt-4-turbo-preview",
@@ -129,31 +156,29 @@ Remember to respond in this exact JSON format if using tools:
         {
             "function": {
                 "name": "tool_name",
-                "arguments": {"param1": "value1"}
+                "parameters": {"param1": "value1"}
             }
         }
     ]
 }
 
-Or respond with just chat content if no tools are needed.
-`;
+For chat responses, just respond with the plain text message.`;
 
         const response = await model.generateContent(enhancedPrompt);
         const result = await response.response.text();
 
         try {
-            // Try to parse the response as JSON
+            // Try to parse as JSON for tool calls
             const parsedResponse = JSON.parse(result);
             if (parsedResponse.tool_calls) {
-                // Important change: Don't stringify the tool calls again
-                return await this.handleToolCalls(parsedResponse);
+                return parsedResponse;
             }
+            // If it's not tool calls, treat as chat
+            return parsedResponse.content || parsedResponse;
         } catch (e) {
-            // If it's not JSON or doesn't have tool_calls, treat it as chat
-            return JSON.stringify({ chat: result });
+            // If not valid JSON, it's a plain text chat response
+            return result;
         }
-
-        return JSON.stringify({ chat: result });
     }
 }
 
