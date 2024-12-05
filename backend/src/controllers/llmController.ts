@@ -11,7 +11,16 @@ llmRouter.post('/chat', async (req, res, next) => {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        const response = await llmService.processRequest(message);
+        let identifier = req.body.identifier || 
+                        req.ip || 
+                        req.headers['x-forwarded-for'] || 
+                        'unknown';
+        
+        if (identifier.startsWith('::ffff:')) {
+            identifier = identifier.substring(7);
+        }
+
+        const response = await llmService.processRequest(message, identifier);
         res.json(response);
     } catch (error) {
         next(error);
