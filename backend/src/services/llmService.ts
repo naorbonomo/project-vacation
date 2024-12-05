@@ -1,6 +1,6 @@
 import Groq from "groq-sdk";
-import { OpenAI } from "openai";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// import { OpenAI } from "openai";  // Comment out unused imports
+// import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -8,6 +8,7 @@ import { toolsList } from '../utils/tool_list';
 import { ToolExecutor } from './tools';
 import { systemPrompt } from '../utils/systemPrompt';
 import { logInteraction } from '../utils/logging';
+import axios from 'axios';
 
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
@@ -105,7 +106,8 @@ class GroqProvider extends BaseLLMProvider {
     }
 }
 
-// OpenAI implementation with type fixes
+// Comment out OpenAI class since we're not using it
+/*
 class OpenAIProvider extends BaseLLMProvider {
     private client: OpenAI;
 
@@ -123,25 +125,27 @@ class OpenAIProvider extends BaseLLMProvider {
                 },
                 { role: "user", content: userInput }
             ],
-            model: "gpt-4-turbo-preview",
+            model: "gpt-4o-mini",
             tools: [...toolsList] as any,
-            tool_choice: "auto"
+            tool_choice: "auto",
+            temperature: 0.2
         });
         return this.handleToolCalls(response.choices[0]?.message);
     }
 }
+*/
 
 // Gemini implementation
 class GeminiProvider extends BaseLLMProvider {
-    private client: GoogleGenerativeAI;
+    // private client: GoogleGenerativeAI;
 
     constructor() {
         super();
-        this.client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+        // this.client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
     }
 
     async processMessage(userInput: string, identifier: string): Promise<any> {
-        const model = this.client.getGenerativeModel({ model: "gemini-pro" });
+        // const model = this.client.getGenerativeModel({ model: "gemini-pro" });
         
         const enhancedPrompt = `${systemPrompt}
 
@@ -164,8 +168,8 @@ Remember to respond in this exact JSON format if using tools:
 
 For chat responses, just respond with the plain text message.`;
 
-        const response = await model.generateContent(enhancedPrompt);
-        const result = await response.response.text();
+        // const response = await model.generateContent(enhancedPrompt);
+        const result = enhancedPrompt;
 
         try {
             // Try to parse as JSON for tool calls
@@ -182,6 +186,42 @@ For chat responses, just respond with the plain text message.`;
     }
 }
 
+// GroqHome implementation
+class GroqHomeProvider extends BaseLLMProvider {
+    private baseUrl: string;
+
+    constructor() {
+        super();
+        this.baseUrl = 'https://2615-5-22-132-195.ngrok-free.app';
+    }
+
+    async processMessage(userInput: string, identifier: string): Promise<any> {
+        try {
+            const response = await axios.post(`${this.baseUrl}/v1/chat/completions`, {
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: userInput }
+                ],
+                model: "HoneyBadger2989/Llama-3-Groq-8B-Tool-Use-GGUF",
+                tools: toolsList as any,
+                tool_choice: "auto",
+                temperature: 0.7,
+                max_tokens: -1,
+                stream: false  // Set to true if you want to handle streaming responses
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            return this.handleToolCalls(response.data.choices[0]?.message);
+        } catch (error) {
+            console.error('GroqHome API Error:', error);
+            throw error;
+        }
+    }
+}
+
 // Add type for provider rotation
 type ProviderStats = {
     lastUsed: number;
@@ -193,39 +233,29 @@ type ProviderStats = {
 export class LLMService {
     private providers: Map<string, BaseLLMProvider>;
     private providerStats: Map<string, ProviderStats>;
-    private readonly rotationInterval = 1000; // 1 second between provider switches
+    // private readonly rotationInterval = 1000; // 1 second between provider switches
 
     constructor() {
+        // Initialize Groq and GroqHome
         this.providers = new Map<string, BaseLLMProvider>([
             ['groq', new GroqProvider()],
-            ['openai', new OpenAIProvider()],
-            ['gemini', new GeminiProvider()]
+            ['groqhome', new GroqHomeProvider()],
+            // ['openai', new OpenAIProvider()],
+            // ['gemini', new GeminiProvider()]
         ]);
 
-        // Initialize stats for each provider
-        this.providerStats = new Map(
-            Array.from(this.providers.keys()).map(key => [
-                key,
-                { lastUsed: 0, errorCount: 0, totalCalls: 0 }
-            ])
-        );
+        // Initialize stats for both providers
+        this.providerStats = new Map([
+            ['groq', { lastUsed: 0, errorCount: 0, totalCalls: 0 }],
+            ['groqhome', { lastUsed: 0, errorCount: 0, totalCalls: 0 }]
+            // ['openai', { lastUsed: 0, errorCount: 0, totalCalls: 0 }],
+            // ['gemini', { lastUsed: 0, errorCount: 0, totalCalls: 0 }]
+        ]);
     }
 
     private selectProvider(): string {
-        const now = Date.now();
-        let selectedProvider = 'groq'; // default
-        let longestWait = 0;
-
-        // Find the provider that hasn't been used for the longest time
-        this.providerStats.forEach((stats, provider) => {
-            const waitTime = now - stats.lastUsed;
-            if (waitTime > longestWait) {
-                longestWait = waitTime;
-                selectedProvider = provider;
-            }
-        });
-
-        return selectedProvider;
+        return 'groqhome'; // Still default to original Groq
+        // Use 'groqhome' explicitly when needed via the provider parameter in processRequest
     }
 
     async processRequest(
