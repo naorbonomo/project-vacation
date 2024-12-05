@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { toolsList } from '../utils/tool_list';
 import { ToolExecutor } from './tools';
+import { systemPrompt } from '../utils/systemPrompt';
 
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
@@ -32,12 +33,28 @@ export class LLMService {
     // Modify the method signature to accept an identifier
     async processRequest(userInput: string, identifier: string = 'unknown'): Promise<any> {
         try {
+            // Log the complete prompt context being sent to LLM
+            console.log('LLM Prompt:', {
+                identifier,
+                userInput,
+                timestamp: new Date().toISOString(),
+                tools: toolsList,
+                model: "llama3-groq-70b-8192-tool-use-preview",
+                systemPrompt
+            });
+
             // Type assertion to satisfy Groq's type requirements
             const response = await groq.chat.completions.create({
-                messages: [{
-                    role: "user",
-                    content: userInput
-                }],
+                messages: [
+                    {
+                        role: "system",
+                        content: systemPrompt
+                    },
+                    {
+                        role: "user",
+                        content: userInput
+                    }
+                ],
                 model: "llama3-groq-70b-8192-tool-use-preview",
                 tools: toolsList as any,
                 tool_choice: "auto"
