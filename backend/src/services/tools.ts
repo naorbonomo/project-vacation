@@ -50,6 +50,12 @@ interface FadeControlParams {
     fade_time: number;
 }
 
+interface StoreExecutorParams {
+    executor: number;
+    page?: number;
+    store_method?: 'merge' | 'overwrite';
+}
+
 export class ToolExecutor {
     /**
      * Main entry point for executing lighting control functions
@@ -74,6 +80,8 @@ export class ToolExecutor {
                 return this.delete_control(params);
             case 'fade_control':
                 return this.fade_control(params);
+            case 'store_executor':
+                return this.store_executor(params);
             default:
                 throw new Error(`Unknown function: ${functionName}`);
         }
@@ -213,19 +221,8 @@ export class ToolExecutor {
             // Map store method to command flag
             const methodFlag = store_method === 'merge' ? '/m' : '/o';
             
-            // Check if this is an executor command
-            const isExecutor = identifier.toLowerCase().includes('executor') || identifier.toLowerCase().includes('exec');
-            
-            // Build the command in the correct order
-            let cmd = `Store ${methodFlag} `;
-            
-            if (isExecutor) {
-                // Handle executor case: "Store /m executor 1.5"
-                cmd += `executor ${identifier.replace(/^(?:executor|exec)\s+/i, '')}`;
-            } else {
-                // Handle cue case: "Store /m cue 1.5"
-                cmd += `cue ${identifier.replace(/^[Qq]/, '')}`;
-            }
+            // Build the command
+            let cmd = `Store ${methodFlag} Cue ${identifier.replace(/^[Qq]/, '')}`;
             
             // Add fade time if specified
             if (fade_time !== undefined) {
@@ -328,6 +325,40 @@ export class ToolExecutor {
         } catch (error) {
             console.error('Error in fade_control:', error);
             throw new Error(`Error setting fade time: ${error}`);
+        }
+    }
+
+    async store_executor({ executor, page = 1, store_method = 'merge' }: StoreExecutorParams): Promise<string> {
+        try {
+            // Map store method to command flag
+            const methodFlag = store_method === 'merge' ? '/m' : '/o';
+            
+            // Build the command
+            const cmd = `Store ${methodFlag} Executor ${page}.${executor}\r\n`;
+            
+            console.log('Executing command:', cmd);
+            return JSON.stringify({ cmd });
+        } catch (error) {
+            console.error('Error in store_executor:', error);
+            throw new Error(`Error storing to executor: ${error}`);
+        }
+    }   
+
+    /**
+     * Executes multiple functions in sequence
+     */
+    async executeFunctions(commands: Array<{functionName: string, params: any}>): Promise<string> {
+        try {
+            const allCommands = [];
+            for (const command of commands) {
+                const result = await this.executeFunction(command.functionName, command.params);
+                const parsed = JSON.parse(result);
+                allCommands.push(parsed.cmd);
+            }
+            return JSON.stringify({ cmd: allCommands.join('') });
+        } catch (error) {
+            console.error('Error executing multiple functions:', error);
+            throw new Error(`Error executing multiple functions: ${error}`);
         }
     }
 } 

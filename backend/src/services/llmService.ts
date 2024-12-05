@@ -66,11 +66,20 @@ export class LLMService {
             
             let result;
             if (message.tool_calls && message.tool_calls.length > 0) {
-                const toolCall = message.tool_calls[0];
-                const functionName = toolCall.function.name;
-                const functionArgs = JSON.parse(toolCall.function.arguments);
-                
-                result = await toolExecutor.executeFunction(functionName, functionArgs);
+                if (message.tool_calls.length === 1) {
+                    // Single command
+                    const toolCall = message.tool_calls[0];
+                    const functionName = toolCall.function.name;
+                    const functionArgs = JSON.parse(toolCall.function.arguments);
+                    result = await toolExecutor.executeFunction(functionName, functionArgs);
+                } else {
+                    // Multiple commands
+                    const commands = message.tool_calls.map(toolCall => ({
+                        functionName: toolCall.function.name,
+                        params: JSON.parse(toolCall.function.arguments)
+                    }));
+                    result = await toolExecutor.executeFunctions(commands);
+                }
             } else {
                 result = JSON.stringify({ chat: message.content });
             }

@@ -239,5 +239,35 @@ export const toolsList = [
                 "required": ["selection", "selection_type", "preset_type", "fade_time"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "store_executor",
+            "description": "Stores current programmer content to an executor. Supports format 'Executor {page}.{executor}' or just executor number (defaults to page 1).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "executor": {
+                        "type": "integer",
+                        "description": "Executor/fader number (1-90)",
+                        "minimum": 1,
+                        "maximum": 90
+                    },
+                    "page": {
+                        "type": "integer",
+                        "description": "Page number (defaults to 1 if not specified)",
+                        "minimum": 1
+                    },
+                    "store_method": {
+                        "type": "string",
+                        "enum": ["merge", "overwrite"],
+                        "description": "Method to store: 'merge' (/m) adds to existing content, 'overwrite' (/o) replaces existing content",
+                        "default": "merge"
+                    }
+                },
+                "required": ["executor"]
+            }
+        }
     }
 ] as const; 
