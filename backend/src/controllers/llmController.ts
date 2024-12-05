@@ -6,7 +6,7 @@ const llmService = new LLMService();
 
 llmRouter.post('/chat', async (req, res, next) => {
     try {
-        const { message } = req.body;
+        const { message, provider } = req.body;
         if (!message) {
             return res.status(400).json({ error: 'Message is required' });
         }
@@ -20,9 +20,15 @@ llmRouter.post('/chat', async (req, res, next) => {
             identifier = identifier.substring(7);
         }
 
-        const response = await llmService.processRequest(message, identifier);
+        const response = await llmService.processRequest(message, identifier, provider);
         res.json(response);
     } catch (error) {
         next(error);
     }
+});
+
+// Add endpoint to get provider statistics
+llmRouter.get('/stats', (req, res) => {
+    const stats = llmService.getProviderStats();
+    res.json(stats);
 }); 
