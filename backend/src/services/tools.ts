@@ -145,11 +145,49 @@ export class ToolExecutor {
 
     async preset_control({ selection, selection_type, preset }: PresetControlParams): Promise<string> {
         try {
+            // Clean up selection
+            const cleanSelection = selection.toLowerCase().replace('group', '').trim();
+            
+            // Format the selection command
             const selection_cmd = selection_type === 'fixture' 
-                ? `Fixture ${selection}`
-                : `Group ${selection}`;
-
-            const cmd = `${selection_cmd} Preset ${preset}\r\n`;
+                ? `Fixture ${cleanSelection}`
+                : `Group ${cleanSelection}`;
+                
+            // Position preset mapping
+            const position_map: { [key: string]: string } = {
+                'basic': '1',
+                'center': '2',
+                'cross': '3',
+                'fan': '4',
+                'sky': '5',
+                'venue': '6',
+                'floor': '7'
+            };
+            
+            let cmd: string;
+            
+            // Parse preset reference
+            if (preset.includes('.')) {
+                const [preset_group, preset_num] = preset.split('.', 2);
+                const cleanPresetNum = preset_num.replace(/"/g, '');
+                
+                // Special handling for position presets (type 2)
+                if (preset_group === '2') {
+                    const mappedNum = position_map[cleanPresetNum.toLowerCase()] || cleanPresetNum;
+                    cmd = `${selection_cmd} At Preset 2.${mappedNum}\r\n`;
+                } else {
+                    // Handle other preset types
+                    cmd = isNaN(Number(cleanPresetNum))
+                        ? `${selection_cmd} At Preset ${preset_group}."${cleanPresetNum}"\r\n`
+                        : `${selection_cmd} At Preset ${preset_group}.${cleanPresetNum}\r\n`;
+                }
+            } else {
+                // Handle presets without type specification
+                cmd = isNaN(Number(preset))
+                    ? `${selection_cmd} At Preset 0."${preset}"\r\n`
+                    : `${selection_cmd} At Preset ${preset}\r\n`;
+            }
+            
             console.log('Executing command:', cmd);
             return JSON.stringify({ cmd });
         } catch (error) {
@@ -160,40 +198,94 @@ export class ToolExecutor {
 
     async label_control({ label_type, identifier, name }: LabelControlParams): Promise<string> {
         try {
-            const cmd = `${label_type.toLowerCase()} ${identifier} ${name}\r\n`;
+            const cmd = `label ${label_type} ${identifier} "${name}"\r\n`;
+            
             console.log('Executing command:', cmd);
             return JSON.stringify({ cmd });
         } catch (error) {
             console.error('Error in label_control:', error);
-            throw new Error(`Error setting label: ${error}`);
+            throw new Error(`Error labeling ${label_type}: ${error}`);
         }
     }
 
-    async store_cue({ identifier, store_method, fade_time }: StoreCueParams): Promise<string> {
+    async store_cue({ identifier, store_method = 'merge', fade_time }: StoreCueParams): Promise<string> {
         try {
-            const cmd = `${identifier} ${store_method} ${fade_time}\r\n`;
+            // Map store method to command flag
+            const methodFlag = store_method === 'merge' ? '/m' : '/o';
+            
+            // Check if this is an executor command
+            const isExecutor = identifier.toLowerCase().includes('executor') || identifier.toLowerCase().includes('exec');
+            
+            // Build the command in the correct order
+            let cmd = `Store ${methodFlag} `;
+            
+            if (isExecutor) {
+                // Handle executor case: "Store /m executor 1.5"
+                cmd += `executor ${identifier.replace(/^(?:executor|exec)\s+/i, '')}`;
+            } else {
+                // Handle cue case: "Store /m cue 1.5"
+                cmd += `cue ${identifier.replace(/^[Qq]/, '')}`;
+            }
+            
+            // Add fade time if specified
+            if (fade_time !== undefined) {
+                cmd += ` Fade ${fade_time}`;
+            }
+            
+            cmd += '\r\n';
+            
             console.log('Executing command:', cmd);
             return JSON.stringify({ cmd });
         } catch (error) {
             console.error('Error in store_cue:', error);
-            throw new Error(`Error storing cue: ${error}`);
+            throw new Error(`Error storing: ${error}`);
         }
     }
 
-    async cue_navigation({ command_type, cue_number, steps }: CueNavigationParams): Promise<string> {
+    async cue_navigation({ command_type, cue_number, steps = 1 }: CueNavigationParams): Promise<string> {
         try {
-            const cmd = `${command_type.toLowerCase()} ${cue_number} ${steps}\r\n`;
+            let cmd = '';
+            
+            switch (command_type.toLowerCase()) {
+                case 'go':
+                    // For 'go', we need to repeat the command
+                    cmd = Array(steps).fill('Go\r\n').join('');
+                    break;
+                    
+                case 'goback':
+                    // For 'goback', we need to repeat the command
+                    cmd = Array(steps).fill('GoBack\r\n').join('');
+                    break;
+                    
+                case 'goto':
+                    if (!cue_number) {
+                        throw new Error('Cue number required for goto command');
+                    }
+                    cmd = `Goto Cue ${cue_number}\r\n`;
+                    break;
+                    
+                default:
+                    throw new Error(`Invalid navigation command: ${command_type}`);
+            }
+            
             console.log('Executing command:', cmd);
             return JSON.stringify({ cmd });
         } catch (error) {
             console.error('Error in cue_navigation:', error);
-            throw new Error(`Error navigating cue: ${error}`);
+            throw new Error(`Error navigating cues: ${error}`);
         }
     }
 
     async delete_control({ delete_type, identifier }: DeleteControlParams): Promise<string> {
         try {
-            const cmd = `${delete_type.toLowerCase()} ${identifier}\r\n`;
+            const cleanIdentifier = delete_type === 'cue'
+                ? identifier.replace(/^[Qq]/, '')
+                : identifier.replace(/^(?:Exec|E)/i, '');
+            
+            const cmd = delete_type === 'cue' 
+                ? `Delete Cue ${cleanIdentifier} /nc\r\n`
+                : `Delete Executor ${cleanIdentifier} /nc\r\n`;
+            
             console.log('Executing command:', cmd);
             return JSON.stringify({ cmd });
         } catch (error) {
@@ -204,16 +296,38 @@ export class ToolExecutor {
 
     async fade_control({ selection, selection_type, preset_type, fade_time }: FadeControlParams): Promise<string> {
         try {
-            const selection_cmd = selection_type === 'fixture' 
-                ? `Fixture ${selection}`
-                : `Group ${selection}`;
-
-            const cmd = `${selection_cmd} Fade ${preset_type} ${fade_time}\r\n`;
-            console.log('Executing command:', cmd);
+            // Map preset type numbers to names
+            const preset_type_map: { [key: number]: string } = {
+                1: "DIMMER",
+                2: "POSITION",
+                3: "GOBO",
+                4: "COLOR",
+                5: "BEAM",
+                6: "FOCUS"
+            };
+            
+            // Validate preset type
+            const preset_name = preset_type_map[preset_type];
+            if (!preset_name) {
+                throw new Error(`Invalid preset type: ${preset_type}`);
+            }
+            
+            // Build the three commands in sequence
+            const cmd1 = selection_type === 'fixture' 
+                ? `Fixture ${selection}\r\n`
+                : `Group ${selection}\r\n`;
+                
+            const cmd2 = `PresetType "${preset_name}"\r\n`;
+            const cmd3 = `Fade ${fade_time}\r\n`;
+            
+            // Combine all commands
+            const cmd = cmd1 + cmd2 + cmd3;
+            
+            console.log('Executing commands:', cmd);
             return JSON.stringify({ cmd });
         } catch (error) {
             console.error('Error in fade_control:', error);
-            throw new Error(`Error fading: ${error}`);
+            throw new Error(`Error setting fade time: ${error}`);
         }
     }
 } 
