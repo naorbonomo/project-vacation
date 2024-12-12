@@ -202,7 +202,7 @@ class GroqHomeProvider extends BaseLLMProvider {
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userInput }
                 ],
-                model: "HoneyBadger2989/Llama-3-Groq-8B-Tool-Use-GGUF",
+                model: "llama-3.2-1b-spinquant-hf",
                 tools: toolsList as any,
                 tool_choice: "auto",
                 temperature: 0.7,
@@ -217,6 +217,81 @@ class GroqHomeProvider extends BaseLLMProvider {
             return this.handleToolCalls(response.data.choices[0]?.message);
         } catch (error) {
             console.error('GroqHome API Error:', error);
+            throw error;
+        }
+    }
+}
+
+// Add new HF-style provider
+class GroqHomeHFProvider extends BaseLLMProvider {
+    private baseUrl: string;
+
+    constructor() {
+        super();
+        this.baseUrl = 'https://2615-5-22-132-195.ngrok-free.app';
+    }
+
+    private formatSystemPrompt(tools: any): string {
+        const toolsString = JSON.stringify(tools, null, 2);
+        return `<|start_header_id|>system<|end_header_id|>
+
+You are a function calling AI model for lighting control. You are provided with function signatures within <tools></tools> XML tags. You may call one or more functions to assist with the user query. Don't make assumptions about what values to plug into functions. For each function call return a json object with function name and arguments within <tool_call></tool_call> XML tags as follows:
+<tool_call>
+{"name": <function-name>,"arguments": <args-dict>}
+</tool_call>
+
+Here are the available tools:
+<tools>
+${toolsString}
+</tools><|eot_id|>`;
+    }
+
+    private formatUserPrompt(userInput: string): string {
+        return `<|start_header_id|>user<|end_header_id|>
+${userInput}<|eot_id|>`;
+    }
+
+    async processMessage(userInput: string, identifier: string): Promise<any> {
+        try {
+            const systemPromptFormatted = this.formatSystemPrompt(toolsList);
+            const userPromptFormatted = this.formatUserPrompt(userInput);
+
+            const response = await axios.post(`${this.baseUrl}/v1/chat/completions`, {
+                messages: [
+                    { role: "system", content: systemPromptFormatted },
+                    { role: "user", content: userPromptFormatted }
+                ],
+                model: "llama-3.2-1b-spinquant-hf",
+                temperature: 0.7,
+                max_tokens: -1,
+                stream: false
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Extract tool calls from HF format
+            const content = response.data.choices[0]?.message?.content;
+            if (!content) return null;
+
+            // Parse tool calls from the HF format using a more compatible regex
+            const toolCallMatch = content.match(/<tool_call>([^]*?)<\/tool_call>/);
+            if (toolCallMatch) {
+                const toolCallData = JSON.parse(toolCallMatch[1]);
+                return {
+                    tool_calls: [{
+                        function: {
+                            name: toolCallData.name,
+                            arguments: toolCallData.arguments
+                        }
+                    }]
+                };
+            }
+
+            return content;
+        } catch (error) {
+            console.error('GroqHomeHF API Error:', error);
             throw error;
         }
     }
@@ -240,6 +315,7 @@ export class LLMService {
         this.providers = new Map<string, BaseLLMProvider>([
             ['groq', new GroqProvider()],
             ['groqhome', new GroqHomeProvider()],
+            ['groqhomehf', new GroqHomeHFProvider()], // Add the new HF provider
             // ['openai', new OpenAIProvider()],
             // ['gemini', new GeminiProvider()]
         ]);
@@ -247,15 +323,15 @@ export class LLMService {
         // Initialize stats for both providers
         this.providerStats = new Map([
             ['groq', { lastUsed: 0, errorCount: 0, totalCalls: 0 }],
-            ['groqhome', { lastUsed: 0, errorCount: 0, totalCalls: 0 }]
+            ['groqhome', { lastUsed: 0, errorCount: 0, totalCalls: 0 }],
+            ['groqhomehf', { lastUsed: 0, errorCount: 0, totalCalls: 0 }]
             // ['openai', { lastUsed: 0, errorCount: 0, totalCalls: 0 }],
             // ['gemini', { lastUsed: 0, errorCount: 0, totalCalls: 0 }]
         ]);
     }
 
     private selectProvider(): string {
-        return 'groqhome'; // Still default to original Groq
-        // Use 'groqhome' explicitly when needed via the provider parameter in processRequest
+        return 'groqhomehf'; // Set HF version as default
     }
 
     async processRequest(
